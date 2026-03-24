@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="de" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FörderScan – Der Förderrechner für Energieberater</title>
+  <meta name="description" content="FörderScan hilft Energieberatern, die optimale Förderkombination für energetische Sanierungen zu finden. BEG, KfW, BAFA – alles in einem Tool." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['IBM Plex Sans', 'sans-serif'] },
+          colors: {
+            gold: { DEFAULT: '#F59E0B', light: '#FCD34D', dark: '#D97706' },
+            purple: { DEFAULT: '#8B5CF6', light: '#A78BFA', dark: '#7C3AED' },
+            navy: { DEFAULT: '#0F172A', mid: '#1E293B', light: '#334155' },
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'IBM Plex Sans', sans-serif; background-color: #0F172A; color: #F8FAFC; }
+
+    /* Glass effect */
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .glass-gold {
+      background: rgba(245, 158, 11, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+
+    /* Gradient text */
+    .text-gradient {
+      background: linear-gradient(135deg, #F59E0B 0%, #FCD34D 50%, #8B5CF6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Glow effects */
+    .glow-gold { box-shadow: 0 0 40px rgba(245, 158, 11, 0.2); }
+    .glow-purple { box-shadow: 0 0 40px rgba(139, 92, 246, 0.2); }
+    .btn-glow:hover { box-shadow: 0 0 30px rgba(245, 158, 11, 0.5); }
+    .btn-purple-glow:hover { box-shadow: 0 0 30px rgba(139, 92, 246, 0.5); }
+
+    /* Animations */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes pulse-gold {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    @keyframes count-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fade-in-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    .animate-float { animation: float 4s ease-in-out infinite; }
+    .animate-pulse-gold { animation: pulse-gold 2s ease-in-out infinite; }
+    .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .animate-float, .animate-pulse-gold, .animate-fade-in-up { animation: none; }
+    }
+
+    /* Background grid */
+    .bg-grid {
+      background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 64px 64px;
+    }
+
+    /* Radial glow bg */
+    .hero-glow {
+      background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(245,158,11,0.15) 0%, transparent 70%),
+                  radial-gradient(ellipse 60% 40% at 80% 50%, rgba(139,92,246,0.1) 0%, transparent 60%);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0F172A; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+    /* Focus styles */
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid #F59E0B;
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    /* Transition helper */
+    .transition-smooth { transition: all 0.2s ease; }
+  </style>
+</head>
+<body class="bg-grid">
+
+<!-- ============================================================
+     NAVBAR
+============================================================ -->
+<header class="fixed top-4 left-4 right-4 z-50 max-w-7xl mx-auto">
+  <nav class="glass rounded-2xl px-6 py-3 flex items-center justify-between">
+    <!-- Logo -->
+    <a href="#" class="flex items-center gap-2.5 group">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <span class="font-bold text-lg text-white group-hover:text-gold transition-smooth">Förder<span class="text-gold">Scan</span></span>
+    </a>
+
+    <!-- Desktop Nav -->
+    <div class="hidden md:flex items-center gap-8">
+      <a href="#features" class="text-sm text-slate-400 hover:text-white transition-smooth cursor-pointer">Funktionen</a>
+      <a href="#how-it-works" class="text-sm text-slate-400 hover:text-white transition-smooth cursor-pointer">So funktioniert's</a>
+      <a href="#pricing" class="text-sm text-slate-400 hover:text-white transition-smooth cursor-pointer">Preise</a>
+      <a href="#testimonials" class="text-sm text-slate-400 hover:text-white transition-smooth cursor-pointer">Referenzen</a>
+      <a href="#faq" class="text-sm text-slate-400 hover:text-white transition-smooth cursor-pointer">FAQ</a>
+    </div>
+
+    <!-- CTA -->
+    <div class="flex items-center gap-3">
+      <a href="#login" class="hidden md:block text-sm text-slate-400 hover:text-white transition-smooth cursor-pointer">Anmelden</a>
+      <a href="#demo" class="bg-gold hover:bg-gold-dark text-navy font-semibold text-sm px-5 py-2.5 rounded-xl btn-glow transition-smooth cursor-pointer">
+        Kostenlos testen
+      </a>
+    </div>
+  </nav>
+</header>
+
+
+<!-- ============================================================
+     HERO
+============================================================ -->
+<section class="hero-glow min-h-screen flex items-center pt-28 pb-20 px-4">
+  <div class="max-w-7xl mx-auto w-full">
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+
+      <!-- Left: Text -->
+      <div class="animate-fade-in-up">
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 glass-gold rounded-full px-4 py-1.5 mb-8">
+          <span class="w-2 h-2 rounded-full bg-gold animate-pulse-gold" aria-hidden="true"></span>
+          <span class="text-gold text-sm font-medium">Für Energieberater &amp; Energieeffizienz-Experten</span>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="text-5xl lg:text-6xl font-bold leading-tight mb-6">
+          Der smarteste<br/>
+          <span class="text-gradient">Förderrechner</span><br/>
+          für Sanierung
+        </h1>
+
+        <!-- Sub -->
+        <p class="text-slate-400 text-xl leading-relaxed mb-10 max-w-lg">
+          FörderScan analysiert alle BEG-, KfW- und BAFA-Programme und zeigt Ihren Kunden in Sekunden die optimale Förderkombination – inklusive exakter Fördersumme.
+        </p>
+
+        <!-- CTAs -->
+        <div class="flex flex-wrap gap-4 mb-12">
+          <a href="#demo" class="bg-gold hover:bg-gold-dark text-navy font-bold text-base px-7 py-4 rounded-xl btn-glow transition-smooth cursor-pointer flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            Demo starten
+          </a>
+          <a href="#how-it-works" class="glass hover:bg-white/10 text-white font-semibold text-base px-7 py-4 rounded-xl transition-smooth cursor-pointer flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4M12 8h.01"/>
+            </svg>
+            Wie es funktioniert
+          </a>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="flex flex-wrap items-center gap-6">
+          <div class="flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#F59E0B" stroke="none" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span class="text-slate-400 text-sm">DSGVO-konform</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <span class="text-slate-400 text-sm">BEG 2024 aktuell</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span class="text-slate-400 text-sm">ISO 27001 zertifiziert</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Dashboard mockup -->
+      <div class="relative animate-float hidden lg:block">
+        <!-- Main card -->
+        <div class="glass rounded-3xl p-6 glow-gold">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <p class="text-slate-400 text-sm">Förderanalyse</p>
+              <p class="text-white font-bold text-lg">Einfamilienhaus, BJ 1978</p>
+            </div>
+            <div class="glass-gold rounded-xl px-3 py-1.5">
+              <span class="text-gold font-semibold text-sm">Vollsanierung</span>
+            </div>
+          </div>
+
+          <!-- Big number -->
+          <div class="bg-gradient-to-r from-gold/10 to-purple/10 rounded-2xl p-5 mb-6 border border-gold/20">
+            <p class="text-slate-400 text-sm mb-1">Maximale Fördersumme</p>
+            <p class="text-5xl font-bold text-gradient mb-2">73.400 €</p>
+            <p class="text-slate-400 text-xs">aus 4 kombinierbaren Förderprogrammen</p>
+          </div>
+
+          <!-- Program breakdown -->
+          <div class="space-y-3 mb-6">
+            <div class="flex items-center justify-between glass rounded-xl px-4 py-3">
+              <div class="flex items-center gap-3">
+                <div class="w-2.5 h-2.5 rounded-full bg-gold" aria-hidden="true"></div>
+                <span class="text-sm text-white">KfW BEG WG – EH 40</span>
+              </div>
+              <span class="text-gold font-semibold text-sm">45.000 €</span>
+            </div>
+            <div class="flex items-center justify-between glass rounded-xl px-4 py-3">
+              <div class="flex items-center gap-3">
+                <div class="w-2.5 h-2.5 rounded-full bg-purple-light" aria-hidden="true"></div>
+                <span class="text-sm text-white">BAFA Bundesförderung EM</span>
+              </div>
+              <span class="text-purple-light font-semibold text-sm">17.500 €</span>
+            </div>
+            <div class="flex items-center justify-between glass rounded-xl px-4 py-3">
+              <div class="flex items-center gap-3">
+                <div class="w-2.5 h-2.5 rounded-full bg-green-400" aria-hidden="true"></div>
+                <span class="text-sm text-white">Beratungsbonus iSFP</span>
+              </div>
+              <span class="text-green-400 font-semibold text-sm">3.900 €</span>
+            </div>
+            <div class="flex items-center justify-between glass rounded-xl px-4 py-3">
+              <div class="flex items-center gap-3">
+                <div class="w-2.5 h-2.5 rounded-full bg-blue-400" aria-hidden="true"></div>
+                <span class="text-sm text-white">Landesförderung Bayern</span>
+              </div>
+              <span class="text-blue-400 font-semibold text-sm">7.000 €</span>
+            </div>
+          </div>
+
+          <!-- Bottom CTA in card -->
+          <button class="w-full bg-gold hover:bg-gold-dark text-navy font-bold py-3.5 rounded-xl transition-smooth cursor-pointer text-sm">
+            Förderantrag vorbereiten
+          </button>
+        </div>
+
+        <!-- Floating badge top-right -->
+        <div class="absolute -top-4 -right-4 glass-gold rounded-2xl px-4 py-3 text-center">
+          <p class="text-gold font-bold text-2xl">3 Min.</p>
+          <p class="text-slate-400 text-xs">Analyse</p>
+        </div>
+
+        <!-- Floating badge bottom-left -->
+        <div class="absolute -bottom-4 -left-4 glass rounded-2xl px-4 py-3 flex items-center gap-3">
+          <div class="w-8 h-8 bg-green-400/20 rounded-full flex items-center justify-center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-white text-sm font-semibold">KfW-konform</p>
+            <p class="text-slate-400 text-xs">Geprüfte Berechnung</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-20">
+      <div class="glass rounded-2xl p-5 text-center cursor-default">
+        <p class="text-3xl font-bold text-gold mb-1">1.200+</p>
+        <p class="text-slate-400 text-sm">Energieberater</p>
+      </div>
+      <div class="glass rounded-2xl p-5 text-center cursor-default">
+        <p class="text-3xl font-bold text-gold mb-1">98.000+</p>
+        <p class="text-slate-400 text-sm">Berechnungen/Monat</p>
+      </div>
+      <div class="glass rounded-2xl p-5 text-center cursor-default">
+        <p class="text-3xl font-bold text-gold mb-1">340+</p>
+        <p class="text-slate-400 text-sm">Förderprogramme</p>
+      </div>
+      <div class="glass rounded-2xl p-5 text-center cursor-default">
+        <p class="text-3xl font-bold text-gold mb-1">4,9 / 5</p>
+        <p class="text-slate-400 text-sm">Nutzerbewertung</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     TRUSTED BY / LOGOS
+============================================================ -->
+<section class="py-14 px-4 border-y border-white/5">
+  <div class="max-w-7xl mx-auto">
+    <p class="text-center text-slate-500 text-sm font-medium mb-8 uppercase tracking-widest">Anerkannt &amp; geprüft von</p>
+    <div class="flex flex-wrap justify-center items-center gap-8 md:gap-16">
+      <!-- KfW -->
+      <div class="glass rounded-xl px-6 py-3 opacity-60 hover:opacity-100 transition-smooth cursor-default">
+        <span class="text-white font-bold text-lg tracking-tight">KfW</span>
+        <span class="text-slate-400 text-xs block">Förderbank</span>
+      </div>
+      <!-- BAFA -->
+      <div class="glass rounded-xl px-6 py-3 opacity-60 hover:opacity-100 transition-smooth cursor-default">
+        <span class="text-white font-bold text-lg tracking-tight">BAFA</span>
+        <span class="text-slate-400 text-xs block">Bundesamt</span>
+      </div>
+      <!-- dena -->
+      <div class="glass rounded-xl px-6 py-3 opacity-60 hover:opacity-100 transition-smooth cursor-default">
+        <span class="text-white font-bold text-lg tracking-tight">dena</span>
+        <span class="text-slate-400 text-xs block">Energieagentur</span>
+      </div>
+      <!-- GIH -->
+      <div class="glass rounded-xl px-6 py-3 opacity-60 hover:opacity-100 transition-smooth cursor-default">
+        <span class="text-white font-bold text-lg tracking-tight">GIH</span>
+        <span class="text-slate-400 text-xs block">Energieberater</span>
+      </div>
+      <!-- BAFA -->
+      <div class="glass rounded-xl px-6 py-3 opacity-60 hover:opacity-100 transition-smooth cursor-default">
+        <span class="text-white font-bold text-lg tracking-tight">BEG 2024</span>
+        <span class="text-slate-400 text-xs block">Aktuell gepflegt</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     PROBLEM STATEMENT
+============================================================ -->
+<section class="py-24 px-4">
+  <div class="max-w-4xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-8">
+      <span class="text-slate-400 text-sm">Das Problem</span>
+    </div>
+    <h2 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+      Förderdschungel kostet<br/>
+      <span class="text-gradient">Zeit und Umsatz</span>
+    </h2>
+    <p class="text-slate-400 text-lg mb-16 leading-relaxed">
+      Über 340 Förderprogramme, ständig wechselnde Konditionen, komplexe Kombinationsregeln –<br class="hidden md:block"/>
+      Energieberater verlieren Stunden pro Beratung und riskieren, Fördergelder für Klienten zu verschenken.
+    </p>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="glass rounded-2xl p-6 text-left border-red-500/20 border hover:border-red-500/40 transition-smooth cursor-default">
+        <div class="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <h3 class="text-white font-semibold mb-2">3–5 Stunden</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Zeitaufwand pro Förderrecherche ohne digitale Unterstützung</p>
+      </div>
+
+      <div class="glass rounded-2xl p-6 text-left border-orange-500/20 border hover:border-orange-500/40 transition-smooth cursor-default">
+        <div class="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <h3 class="text-white font-semibold mb-2">Ø 12.000 € verschenkt</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Nicht ausgeschöpfte Förderpotenziale je Sanierungsprojekt</p>
+      </div>
+
+      <div class="glass rounded-2xl p-6 text-left border-yellow-500/20 border hover:border-yellow-500/40 transition-smooth cursor-default">
+        <div class="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EAB308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
+        <h3 class="text-white font-semibold mb-2">340+ Programme</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Bundesweite, Länder- und kommunale Förderungen manuell kaum überblickbar</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     FEATURES
+============================================================ -->
+<section id="features" class="py-24 px-4">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-8">
+        <span class="text-slate-400 text-sm">Funktionen</span>
+      </div>
+      <h2 class="text-4xl md:text-5xl font-bold mb-6">
+        Alles was Energieberater<br/>
+        <span class="text-gradient">wirklich brauchen</span>
+      </h2>
+      <p class="text-slate-400 text-lg max-w-2xl mx-auto">
+        FörderScan wurde von erfahrenen Energieberatern entwickelt – für den Alltag, nicht für die Schublade.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- Feature 1 -->
+      <div class="glass rounded-2xl p-6 hover:bg-white/10 transition-smooth cursor-default group">
+        <div class="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-gold/20 transition-smooth">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <h3 class="text-white font-semibold text-lg mb-2">Intelligente Förderanalyse</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Automatische Prüfung aller kombinierbaren Bundes-, Landes- und Kommunalförderungen auf Basis Ihrer Eingaben.</p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="glass rounded-2xl p-6 hover:bg-white/10 transition-smooth cursor-default group">
+        <div class="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-gold/20 transition-smooth">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+          </svg>
+        </div>
+        <h3 class="text-white font-semibold text-lg mb-2">Exakte Fördersummen</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Keine Schätzungen – FörderScan berechnet die exakte Förderhöhe inkl. Tilgungszuschüsse, Zuschüsse und Steuervorteile.</p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="glass rounded-2xl p-6 hover:bg-white/10 transition-smooth cursor-default group border border-gold/20">
+        <div class="w-12 h-12 bg-gold/20 rounded-xl flex items-center justify-center mb-5 group-hover:bg-gold/30 transition-smooth">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+        </div>
+        <div class="glass-gold rounded-full px-2.5 py-1 text-xs text-gold font-medium inline-block mb-3">Beliebt</div>
+        <h3 class="text-white font-semibold text-lg mb-2">Professioneller Bericht</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">1-Klick-Export als PDF-Bericht mit Ihrem Branding – direkt für Kundenpräsentationen und Antragsunterlagen.</p>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="glass rounded-2xl p-6 hover:bg-white/10 transition-smooth cursor-default group">
+        <div class="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-gold/20 transition-smooth">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </div>
+        <h3 class="text-white font-semibold text-lg mb-2">iSFP-Integration</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Direkter Import aus dem individuellen Sanierungsfahrplan – Daten einmal erfassen, mehrfach verwenden.</p>
+      </div>
+
+      <!-- Feature 5 -->
+      <div class="glass rounded-2xl p-6 hover:bg-white/10 transition-smooth cursor-default group">
+        <div class="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-gold/20 transition-smooth">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 20V10M12 20V4M6 20v-6"/>
+          </svg>
+        </div>
+        <h3 class="text-white font-semibold text-lg mb-2">Echtzeit-Aktualisierung</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Förderkonditionen werden täglich aktualisiert. Sie arbeiten immer mit den neuesten BEG-Richtlinien.</p>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="glass rounded-2xl p-6 hover:bg-white/10 transition-smooth cursor-default group">
+        <div class="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-gold/20 transition-smooth">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+        </div>
+        <h3 class="text-white font-semibold text-lg mb-2">Team-Workflows</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Projekte im Team bearbeiten, Berechnungen teilen und Kunden-Akten zentral verwalten – auch für Büros mit mehreren Beratern.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     HOW IT WORKS
+============================================================ -->
+<section id="how-it-works" class="py-24 px-4">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-8">
+        <span class="text-slate-400 text-sm">So funktioniert's</span>
+      </div>
+      <h2 class="text-4xl md:text-5xl font-bold mb-4">
+        In 3 Schritten zur<br/>
+        <span class="text-gradient">optimalen Förderung</span>
+      </h2>
+    </div>
+
+    <div class="space-y-6">
+
+      <!-- Step 1 -->
+      <div class="glass rounded-2xl p-8 flex flex-col md:flex-row gap-6 items-start hover:bg-white/10 transition-smooth cursor-default">
+        <div class="flex-shrink-0 w-16 h-16 bg-gold rounded-2xl flex items-center justify-center text-navy font-bold text-2xl">1</div>
+        <div class="flex-1">
+          <h3 class="text-white font-bold text-xl mb-2">Gebäudedaten eingeben</h3>
+          <p class="text-slate-400 leading-relaxed mb-4">Tragen Sie die wesentlichen Gebäude- und Maßnahmenparameter ein – Baujahr, Zustand, geplante Maßnahmen (Dämmung, Heizung, Fenster, etc.) und Eigentümerstatus.</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="glass rounded-full px-3 py-1 text-xs text-slate-300">Baujahr &amp; Typ</span>
+            <span class="glass rounded-full px-3 py-1 text-xs text-slate-300">Wohnfläche</span>
+            <span class="glass rounded-full px-3 py-1 text-xs text-slate-300">Sanierungsmaßnahmen</span>
+            <span class="glass rounded-full px-3 py-1 text-xs text-slate-300">Eigentümerstruktur</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="glass rounded-2xl p-8 flex flex-col md:flex-row gap-6 items-start border border-gold/20 hover:bg-white/10 transition-smooth cursor-default">
+        <div class="flex-shrink-0 w-16 h-16 bg-gold rounded-2xl flex items-center justify-center text-navy font-bold text-2xl">2</div>
+        <div class="flex-1">
+          <h3 class="text-white font-bold text-xl mb-2">Automatische Förderanalyse</h3>
+          <p class="text-slate-400 leading-relaxed mb-4">FörderScan durchsucht in Echtzeit alle 340+ Förderprogramme, prüft Kombinierbarkeit, Antragsvoraussetzungen und berechnet die exakte Förderhöhe für jedes Programm.</p>
+          <div class="flex items-center gap-3 glass-gold rounded-xl px-4 py-2.5 inline-flex w-fit">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span class="text-gold text-sm font-medium">Durchschnittlich unter 3 Minuten</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="glass rounded-2xl p-8 flex flex-col md:flex-row gap-6 items-start hover:bg-white/10 transition-smooth cursor-default">
+        <div class="flex-shrink-0 w-16 h-16 bg-gold rounded-2xl flex items-center justify-center text-navy font-bold text-2xl">3</div>
+        <div class="flex-1">
+          <h3 class="text-white font-bold text-xl mb-2">Bericht exportieren &amp; präsentieren</h3>
+          <p class="text-slate-400 leading-relaxed mb-4">Laden Sie den professionellen PDF-Bericht mit Ihrer Kanzlei-Branding herunter – bereit für die Kundenpräsentation. Alle Antragslinks und Fristen sind direkt verlinkt.</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="glass rounded-full px-3 py-1 text-xs text-slate-300">PDF-Export</span>
+            <span class="glass rounded-full px-3 py-1 text-xs text-slate-300">Eigenes Branding</span>
+            <span class="glass rounded-full px-3 py-1 text-xs text-slate-300">Antragslinks</span>
+            <span class="glass rounded-full px-3 py-1 text-xs text-slate-300">Fristen-Übersicht</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     PRICING
+============================================================ -->
+<section id="pricing" class="py-24 px-4">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-8">
+        <span class="text-slate-400 text-sm">Preise</span>
+      </div>
+      <h2 class="text-4xl md:text-5xl font-bold mb-4">
+        Transparent. Fair.<br/>
+        <span class="text-gradient">Ohne versteckte Kosten.</span>
+      </h2>
+      <p class="text-slate-400 text-lg">30 Tage kostenlos testen – keine Kreditkarte erforderlich.</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+
+      <!-- Starter -->
+      <div class="glass rounded-2xl p-8 flex flex-col hover:bg-white/10 transition-smooth cursor-default">
+        <div class="mb-6">
+          <h3 class="text-white font-bold text-xl mb-1">Starter</h3>
+          <p class="text-slate-400 text-sm">Für Einzelberater im Einstieg</p>
+        </div>
+        <div class="mb-8">
+          <span class="text-5xl font-bold text-white">49</span>
+          <span class="text-gold font-bold text-xl"> €</span>
+          <span class="text-slate-400 text-sm"> / Monat</span>
+          <p class="text-slate-500 text-xs mt-1">zzgl. MwSt.</p>
+        </div>
+        <ul class="space-y-3 mb-8 flex-1">
+          <li class="flex items-start gap-3 text-sm text-slate-300">
+            <svg class="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            50 Analysen / Monat
+          </li>
+          <li class="flex items-start gap-3 text-sm text-slate-300">
+            <svg class="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Alle Bundesprogramme
+          </li>
+          <li class="flex items-start gap-3 text-sm text-slate-300">
+            <svg class="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            PDF-Export (Standard)
+          </li>
+          <li class="flex items-start gap-3 text-sm text-slate-400">
+            <svg class="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Eigenes Branding
+          </li>
+          <li class="flex items-start gap-3 text-sm text-slate-400">
+            <svg class="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Landesförderungen
+          </li>
+        </ul>
+        <a href="#demo" class="glass hover:bg-white/10 text-white font-semibold py-3.5 rounded-xl text-center transition-smooth cursor-pointer text-sm">
+          Kostenlos starten
+        </a>
+      </div>
+
+      <!-- Professional (featured) -->
+      <div class="relative glass-gold rounded-2xl p-8 flex flex-col glow-gold cursor-default">
+        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-gold text-navy font-bold text-xs px-5 py-1.5 rounded-full">
+          Empfohlen
+        </div>
+        <div class="mb-6">
+          <h3 class="text-white font-bold text-xl mb-1">Professional</h3>
+          <p class="text-slate-400 text-sm">Für aktive Einzelberater</p>
+        </div>
+        <div class="mb-8">
+          <span class="text-5xl font-bold text-white">99</span>
+          <span class="text-gold font-bold text-xl"> €</span>
+          <span class="text-slate-400 text-sm"> / Monat</span>
+          <p class="text-slate-500 text-xs mt-1">zzgl. MwSt.</p>
+        </div>
+        <ul class="space-y-3 mb-8 flex-1">
+          <li class="flex items-start gap-3 text-sm text-slate-300">
+            <svg class="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Unbegrenzte Analysen
+          </li>
+          <li class="flex items-start gap-3 text-sm text-slate-300">
+            <svg class="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            340+ Programme inkl. Länder
+          </li>
+          <li class="flex items-start gap-3 text-sm text-slate-300">
+            <svg class="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            PDF mit eigenem Branding
+          </li>
+          <li class="flex items-start gap-3 text-sm text-slate-300">
+            <svg class="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            iSFP-Import
+          </li>
+          <li class="flex items-start gap-3 text-sm text-slate-300">
+            <svg class="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Prioritäts-Support
+          </li>
+        </ul>
+        <a href="#demo" class="bg-gold hover:bg-gold-dark text-navy font-bold py-3.5 rounded-xl text-center btn-glow transition-smooth cursor-pointer text-sm">
+          30 Tage kostenlos testen
+        </a>
+      </div>
+
+      <!-- Team -->
+      <div class="glass rounded-2xl p-8 flex flex-col hover:bg-white/10 transition-smooth cursor-default">
+        <div class="mb-6">
+          <h3 class="text-white font-bold text-xl mb-1">Team</h3>
+          <p class="text-slate-400 text-sm">Für Ingenieurbüros &amp; Teams</p>
+        </div>
+        <div class="mb-8">
+          <span class="text-5xl font-bold text-white">249</span>
+          <span class="text-gold font-bold text-xl"> €</span>
+          <span class="text-slate-400 text-sm"> / Monat</span>
+          <p class="text-slate-500 text-xs mt-1">bis 5 Nutzer · zzgl. MwSt.</p>
+        </div>
+        <ul class="space-y-3 mb-8 flex-1">
+          <li class="flex items-start gap-3 text-sm text-slate-300">
+            <svg class="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Alles aus Professional
+          </li>
+          <li class="flex items-start gap-3 text-sm text-slate-300">
+            <svg class="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            5 Nutzeraccounts
+          </li>
+          <li class="flex items-start gap-3 text-sm text-slate-300">
+            <svg class="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Gemeinsame Projektverwaltung
+          </li>
+          <li class="flex items-start gap-3 text-sm text-slate-300">
+            <svg class="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            API-Zugang
+          </li>
+          <li class="flex items-start gap-3 text-sm text-slate-300">
+            <svg class="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Dedizierter Account-Manager
+          </li>
+        </ul>
+        <a href="#demo" class="bg-purple hover:bg-purple-dark text-white font-bold py-3.5 rounded-xl text-center btn-purple-glow transition-smooth cursor-pointer text-sm">
+          Demo vereinbaren
+        </a>
+      </div>
+
+    </div>
+
+    <p class="text-center text-slate-500 text-sm mt-8">
+      Für Büros mit mehr als 5 Nutzern oder Enterprise-Anforderungen:
+      <a href="#contact" class="text-gold hover:text-gold-light transition-smooth cursor-pointer ml-1">Individuelles Angebot anfragen →</a>
+    </p>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     TESTIMONIALS
+============================================================ -->
+<section id="testimonials" class="py-24 px-4">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-8">
+        <span class="text-slate-400 text-sm">Referenzen</span>
+      </div>
+      <h2 class="text-4xl md:text-5xl font-bold mb-4">
+        Was Energieberater<br/>
+        <span class="text-gradient">über FörderScan sagen</span>
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+
+      <!-- Testimonial 1 -->
+      <div class="glass rounded-2xl p-7 hover:bg-white/10 transition-smooth cursor-default flex flex-col">
+        <!-- Stars -->
+        <div class="flex gap-1 mb-5" aria-label="5 von 5 Sternen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <blockquote class="text-slate-300 text-sm leading-relaxed mb-6 flex-1">
+          „FörderScan hat meine Beratungsvorbereitung von 4 Stunden auf unter 30 Minuten reduziert. Die Kombination aus BEG- und Landesförderung hätte ich ohne das Tool nie so schnell gefunden."
+        </blockquote>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gold/40 to-gold/10 flex items-center justify-center font-bold text-gold text-sm" aria-hidden="true">TH</div>
+          <div>
+            <p class="text-white font-semibold text-sm">Thomas Hartmann</p>
+            <p class="text-slate-400 text-xs">Energieberater, München · dena-zertifiziert</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial 2 -->
+      <div class="glass-gold rounded-2xl p-7 hover:bg-gold/10 transition-smooth cursor-default flex flex-col">
+        <div class="flex gap-1 mb-5" aria-label="5 von 5 Sternen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <blockquote class="text-slate-300 text-sm leading-relaxed mb-6 flex-1">
+          „Meine Kunden sind begeistert von den professionellen Berichten mit meinem Logo. Der Eindruck von Kompetenz und Professionalität ist mit keinem anderen Tool erreichbar. Meine Abschlussquote ist um 40% gestiegen."
+        </blockquote>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple/40 to-purple/10 flex items-center justify-center font-bold text-purple-light text-sm" aria-hidden="true">SK</div>
+          <div>
+            <p class="text-white font-semibold text-sm">Sabine Kübler</p>
+            <p class="text-slate-400 text-xs">Energieingenieurin, Hamburg · GIH-Mitglied</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial 3 -->
+      <div class="glass rounded-2xl p-7 hover:bg-white/10 transition-smooth cursor-default flex flex-col">
+        <div class="flex gap-1 mb-5" aria-label="5 von 5 Sternen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <blockquote class="text-slate-300 text-sm leading-relaxed mb-6 flex-1">
+          „Als kleines Ingenieurbüro mit 3 Energieberatern war der Team-Plan die perfekte Wahl. Wir teilen Projekte, und der Support reagiert wirklich innerhalb von Minuten. Bestes Tool-Investment in diesem Jahr."
+        </blockquote>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400/40 to-green-400/10 flex items-center justify-center font-bold text-green-400 text-sm" aria-hidden="true">MW</div>
+          <div>
+            <p class="text-white font-semibold text-sm">Markus Weber</p>
+            <p class="text-slate-400 text-xs">Ingenieurbüro Weber, Stuttgart · 8 Jahre Erfahrung</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     FAQ
+============================================================ -->
+<section id="faq" class="py-24 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-8">
+        <span class="text-slate-400 text-sm">FAQ</span>
+      </div>
+      <h2 class="text-4xl md:text-5xl font-bold mb-4">
+        Häufige <span class="text-gradient">Fragen</span>
+      </h2>
+    </div>
+
+    <div class="space-y-3" role="list">
+
+      <details class="glass rounded-2xl group cursor-pointer" open>
+        <summary class="flex items-center justify-between p-6 list-none cursor-pointer select-none" tabindex="0">
+          <span class="text-white font-semibold pr-4">Wie aktuell sind die Förderprogramme?</span>
+          <svg class="flex-shrink-0 text-gold group-open:rotate-180 transition-smooth" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </summary>
+        <div class="px-6 pb-6">
+          <p class="text-slate-400 text-sm leading-relaxed">Alle Förderprogramme werden täglich aktualisiert. Unser Team aus Förderexperten überwacht Änderungen bei BEG, KfW und BAFA und pflegt die Datenbasis in Echtzeit. Bei Programmänderungen erhalten Sie automatisch eine Benachrichtigung.</p>
+        </div>
+      </details>
+
+      <details class="glass rounded-2xl group cursor-pointer">
+        <summary class="flex items-center justify-between p-6 list-none cursor-pointer select-none" tabindex="0">
+          <span class="text-white font-semibold pr-4">Kann ich FörderScan mit meinen bestehenden Tools verbinden?</span>
+          <svg class="flex-shrink-0 text-gold group-open:rotate-180 transition-smooth" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </summary>
+        <div class="px-6 pb-6">
+          <p class="text-slate-400 text-sm leading-relaxed">Ja. FörderScan unterstützt den iSFP-Import und bietet im Team-Plan eine REST-API. Schnittstellen zu gängigen Energieberatungs-Softwares (EPASS-HELENA, IDA ICE) befinden sich im Aufbau.</p>
+        </div>
+      </details>
+
+      <details class="glass rounded-2xl group cursor-pointer">
+        <summary class="flex items-center justify-between p-6 list-none cursor-pointer select-none" tabindex="0">
+          <span class="text-white font-semibold pr-4">Sind die Berechnungen rechtsverbindlich?</span>
+          <svg class="flex-shrink-0 text-gold group-open:rotate-180 transition-smooth" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </summary>
+        <div class="px-6 pb-6">
+          <p class="text-slate-400 text-sm leading-relaxed">FörderScan liefert belastbare Schätzungen auf Basis der aktuellen Förderbedingungen, ersetzt aber keine rechtliche oder steuerliche Beratung. Die Berechnungen dienen als fundierte Grundlage für Ihre Beratungsgespräche. Die endgültige Förderhöhe wird durch den jeweiligen Förderträger festgestellt.</p>
+        </div>
+      </details>
+
+      <details class="glass rounded-2xl group cursor-pointer">
+        <summary class="flex items-center justify-between p-6 list-none cursor-pointer select-none" tabindex="0">
+          <span class="text-white font-semibold pr-4">Wie funktioniert das Eigene-Branding-Feature?</span>
+          <svg class="flex-shrink-0 text-gold group-open:rotate-180 transition-smooth" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </summary>
+        <div class="px-6 pb-6">
+          <p class="text-slate-400 text-sm leading-relaxed">Im Professional- und Team-Plan laden Sie einfach Ihr Logo, definieren Ihre Unternehmensfarben und Kontaktdaten. Alle exportierten PDF-Berichte erscheinen dann in Ihrem Corporate Design – ohne FörderScan-Branding.</p>
+        </div>
+      </details>
+
+      <details class="glass rounded-2xl group cursor-pointer">
+        <summary class="flex items-center justify-between p-6 list-none cursor-pointer select-none" tabindex="0">
+          <span class="text-white font-semibold pr-4">Wie sicher sind meine Kundendaten?</span>
+          <svg class="flex-shrink-0 text-gold group-open:rotate-180 transition-smooth" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </summary>
+        <div class="px-6 pb-6">
+          <p class="text-slate-400 text-sm leading-relaxed">FörderScan ist vollständig DSGVO-konform und ISO 27001 zertifiziert. Alle Daten werden verschlüsselt auf deutschen Servern gespeichert (AWS Frankfurt Region). Kundendaten werden nicht an Dritte weitergegeben und nicht für KI-Training verwendet.</p>
+        </div>
+      </details>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     FINAL CTA
+============================================================ -->
+<section id="demo" class="py-24 px-4">
+  <div class="max-w-4xl mx-auto">
+    <div class="glass-gold rounded-3xl p-12 text-center glow-gold relative overflow-hidden">
+      <!-- Background decoration -->
+      <div class="absolute inset-0 opacity-5" aria-hidden="true">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-gold rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-purple rounded-full blur-3xl"></div>
+      </div>
+
+      <div class="relative z-10">
+        <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-8">
+          <span class="w-2 h-2 rounded-full bg-green-400" aria-hidden="true"></span>
+          <span class="text-slate-300 text-sm">30 Tage kostenlos – keine Kreditkarte</span>
+        </div>
+
+        <h2 class="text-4xl md:text-5xl font-bold mb-6">
+          Starten Sie noch heute<br/>
+          <span class="text-gradient">kostenlos durch</span>
+        </h2>
+
+        <p class="text-slate-400 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
+          1.200+ Energieberater vertrauen FörderScan. Werden Sie Teil der Community und steigern Sie Ihren Beratungserfolg.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="#register" class="bg-gold hover:bg-gold-dark text-navy font-bold text-base px-8 py-4 rounded-xl btn-glow transition-smooth cursor-pointer flex items-center justify-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <line x1="19" y1="8" x2="19" y2="14"/>
+              <line x1="22" y1="11" x2="16" y2="11"/>
+            </svg>
+            Kostenlos registrieren
+          </a>
+          <a href="#contact" class="glass hover:bg-white/10 text-white font-semibold text-base px-8 py-4 rounded-xl transition-smooth cursor-pointer flex items-center justify-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.95 12a19.79 19.79 0 01-3.07-8.67A2 2 0 012.88 1.34h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L7.1 8.96a16 16 0 006 6l1.02-1.02a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+            </svg>
+            Demo-Gespräch buchen
+          </a>
+        </div>
+
+        <!-- Mini trust signals -->
+        <div class="flex flex-wrap justify-center gap-6 mt-10">
+          <span class="text-slate-500 text-xs flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Keine Kreditkarte
+          </span>
+          <span class="text-slate-500 text-xs flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Sofort einsatzbereit
+          </span>
+          <span class="text-slate-500 text-xs flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            Jederzeit kündbar
+          </span>
+          <span class="text-slate-500 text-xs flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            DSGVO-konform
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     FOOTER
+============================================================ -->
+<footer class="border-t border-white/5 py-16 px-4">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid md:grid-cols-4 gap-10 mb-12">
+
+      <!-- Brand -->
+      <div class="md:col-span-1">
+        <a href="#" class="flex items-center gap-2.5 mb-4 group w-fit">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <span class="font-bold text-lg text-white">Förder<span class="text-gold">Scan</span></span>
+        </a>
+        <p class="text-slate-500 text-sm leading-relaxed mb-5">
+          Der smarte Förderrechner für professionelle Energieberater. Täglich aktualisiert.
+        </p>
+        <div class="flex gap-3">
+          <a href="#" class="w-9 h-9 glass rounded-xl flex items-center justify-center hover:bg-white/10 transition-smooth cursor-pointer" aria-label="LinkedIn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          </a>
+          <a href="#" class="w-9 h-9 glass rounded-xl flex items-center justify-center hover:bg-white/10 transition-smooth cursor-pointer" aria-label="Twitter">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Product -->
+      <div>
+        <h4 class="text-white font-semibold text-sm mb-5">Produkt</h4>
+        <ul class="space-y-3">
+          <li><a href="#features" class="text-slate-500 hover:text-white text-sm transition-smooth cursor-pointer">Funktionen</a></li>
+          <li><a href="#pricing" class="text-slate-500 hover:text-white text-sm transition-smooth cursor-pointer">Preise</a></li>
+          <li><a href="#" class="text-slate-500 hover:text-white text-sm transition-smooth cursor-pointer">Changelog</a></li>
+          <li><a href="#" class="text-slate-500 hover:text-white text-sm transition-smooth cursor-pointer">Roadmap</a></li>
+          <li><a href="#" class="text-slate-500 hover:text-white text-sm transition-smooth cursor-pointer">API-Dokumentation</a></li>
+        </ul>
+      </div>
+
+      <!-- Resources -->
+      <div>
+        <h4 class="text-white font-semibold text-sm mb-5">Ressourcen</h4>
+        <ul class="space-y-3">
+          <li><a href="#" class="text-slate-500 hover:text-white text-sm transition-smooth cursor-pointer">BEG-Leitfaden</a></li>
+          <li><a href="#" class="text-slate-500 hover:text-white text-sm transition-smooth cursor-pointer">Förderprogramm-Übersicht</a></li>
+          <li><a href="#" class="text-slate-500 hover:text-white text-sm transition-smooth cursor-pointer">Blog</a></li>
+          <li><a href="#" class="text-slate-500 hover:text-white text-sm transition-smooth cursor-pointer">Hilfe-Center</a></li>
+          <li><a href="#" class="text-slate-500 hover:text-white text-sm transition-smooth cursor-pointer">Webinare</a></li>
+        </ul>
+      </div>
+
+      <!-- Company -->
+      <div>
+        <h4 class="text-white font-semibold text-sm mb-5">Unternehmen</h4>
+        <ul class="space-y-3">
+          <li><a href="#" class="text-slate-500 hover:text-white text-sm transition-smooth cursor-pointer">Über FörderScan</a></li>
+          <li><a href="#" class="text-slate-500 hover:text-white text-sm transition-smooth cursor-pointer">Karriere</a></li>
+          <li><a href="#" class="text-slate-500 hover:text-white text-sm transition-smooth cursor-pointer">Presse</a></li>
+          <li><a href="#" class="text-slate-500 hover:text-white text-sm transition-smooth cursor-pointer">Kontakt</a></li>
+          <li><a href="#" class="text-slate-500 hover:text-white text-sm transition-smooth cursor-pointer">Partner werden</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <p class="text-slate-600 text-xs">© 2024 FörderScan GmbH. Alle Rechte vorbehalten.</p>
+      <div class="flex flex-wrap gap-6">
+        <a href="#" class="text-slate-600 hover:text-slate-400 text-xs transition-smooth cursor-pointer">Datenschutz</a>
+        <a href="#" class="text-slate-600 hover:text-slate-400 text-xs transition-smooth cursor-pointer">Impressum</a>
+        <a href="#" class="text-slate-600 hover:text-slate-400 text-xs transition-smooth cursor-pointer">AGB</a>
+        <a href="#" class="text-slate-600 hover:text-slate-400 text-xs transition-smooth cursor-pointer">Cookie-Einstellungen</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Simple FAQ toggle script -->
+<script>
+  // Smooth scroll for anchors
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // Intersection observer for fade-in
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.glass, .glass-gold').forEach(el => {
+    if (!el.closest('header') && !el.closest('nav')) {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(20px)';
+      el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      observer.observe(el);
+    }
+  });
+</script>
+
+</body>
+</html>
