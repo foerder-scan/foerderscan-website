@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Foerdergeber, Foerdersegment } from "@prisma/client";
 import {
   Database,
   ExternalLink,
@@ -9,11 +10,18 @@ import {
 } from "lucide-react";
 import DatenbankFilter from "./DatenbankFilter";
 
+const VALID_FOERDERGEBER = new Set(Object.values(Foerdergeber));
+const VALID_SEGMENT = new Set(Object.values(Foerdersegment));
+
 async function getProgramme(foerdergeber?: string, segment?: string, search?: string) {
   return prisma.foerderProgramm.findMany({
     where: {
-      ...(foerdergeber && foerdergeber !== "alle" ? { foerdergeber: foerdergeber as never } : {}),
-      ...(segment && segment !== "alle" ? { foerdersegment: segment as never } : {}),
+      ...(foerdergeber && VALID_FOERDERGEBER.has(foerdergeber as Foerdergeber)
+        ? { foerdergeber: foerdergeber as Foerdergeber }
+        : {}),
+      ...(segment && VALID_SEGMENT.has(segment as Foerdersegment)
+        ? { foerdersegment: segment as Foerdersegment }
+        : {}),
       ...(search ? {
         OR: [
           { name: { contains: search, mode: "insensitive" } },

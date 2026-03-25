@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Foerdergeber } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
   const programme = await prisma.foerderProgramm.findMany({
     where: {
       status: { in: ["AKTIV", "AUSLAUFEND"] },
-      ...(foerdergeber && foerdergeber !== "alle" ? { foerdergeber: foerdergeber as never } : {}),
+      ...(foerdergeber && foerdergeber !== "alle" ? { foerdergeber: foerdergeber as Foerdergeber } : {}),
       ...(q ? {
         OR: [
           { name: { contains: q, mode: "insensitive" } },
