@@ -1,0 +1,276 @@
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { User, Mail, Calendar, CreditCard, Zap, CheckCircle2, ArrowUpRight } from "lucide-react";
+
+const TIER_INFO: Record<string, {
+  label: string;
+  color: string;
+  bg: string;
+  border: string;
+  features: string[];
+}> = {
+  FREE: {
+    label: "Free",
+    color: "text-slate-700",
+    bg: "bg-slate-50",
+    border: "border-slate-200",
+    features: ["3 Projekte", "Förderrechner", "Förderdatenbank (Basis)"],
+  },
+  STARTER: {
+    label: "Starter",
+    color: "text-blue-700",
+    bg: "bg-blue-50",
+    border: "border-blue-200",
+    features: ["10 Projekte", "Förderrechner", "Förderdatenbank (vollständig)", "PDF-Export"],
+  },
+  PROFESSIONAL: {
+    label: "Professional",
+    color: "text-[#1B4F72]",
+    bg: "bg-[#EBF5FB]",
+    border: "border-[#1B4F72]/20",
+    features: ["Unbegrenzte Projekte", "Alle Förderprogramme", "KI-Matching", "PDF-Export", "Kundenportal", "API-Zugang"],
+  },
+  ENTERPRISE: {
+    label: "Enterprise",
+    color: "text-purple-700",
+    bg: "bg-purple-50",
+    border: "border-purple-200",
+    features: ["Alles aus Professional", "Unbegrenzte Nutzer", "White-Label", "Dedizierter Support", "SLA"],
+  },
+};
+
+const UPGRADE_OPTIONS = [
+  {
+    tier: "STARTER",
+    label: "Starter",
+    price: "49 €/Monat",
+    highlight: false,
+  },
+  {
+    tier: "PROFESSIONAL",
+    label: "Professional",
+    price: "149 €/Monat",
+    highlight: true,
+  },
+  {
+    tier: "ENTERPRISE",
+    label: "Enterprise",
+    price: "Auf Anfrage",
+    highlight: false,
+  },
+];
+
+export default async function ProfilPage() {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { subscription: true },
+  });
+
+  if (!user) return null;
+
+  const tier = user.subscription?.tier ?? "FREE";
+  const tierInfo = TIER_INFO[tier] ?? TIER_INFO.FREE;
+  const initials = (user.name ?? user.email ?? "U")
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const projectCount = await prisma.projekt.count({ where: { userId } });
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-xl font-extrabold text-slate-900">Profil & Abo</h1>
+        <p className="text-sm text-slate-500 mt-0.5">Konto- und Aboverwaltung</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left */}
+        <div className="lg:col-span-2 space-y-5">
+          {/* Profil */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6">
+            <h2 className="text-sm font-bold text-slate-800 mb-5">Profilinformationen</h2>
+            <div className="flex items-start gap-5">
+              <div className="w-14 h-14 rounded-2xl bg-[#1B4F72] text-white text-lg font-extrabold flex items-center justify-center shrink-0">
+                {initials}
+              </div>
+              <div className="flex-1 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-500 mb-1.5 flex items-center gap-1.5">
+                      <User size={11} /> Name
+                    </label>
+                    <div className="text-sm font-semibold text-slate-800 border border-slate-200 rounded-xl px-3 py-2.5 bg-slate-50">
+                      {user.name ?? "–"}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-500 mb-1.5 flex items-center gap-1.5">
+                      <Mail size={11} /> E-Mail
+                    </label>
+                    <div className="text-sm font-semibold text-slate-800 border border-slate-200 rounded-xl px-3 py-2.5 bg-slate-50">
+                      {user.email}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1.5 flex items-center gap-1.5">
+                    <Calendar size={11} /> Mitglied seit
+                  </label>
+                  <div className="text-sm text-slate-600 border border-slate-200 rounded-xl px-3 py-2.5 bg-slate-50">
+                    {new Date(user.createdAt).toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Nutzung */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6">
+            <h2 className="text-sm font-bold text-slate-800 mb-4">Nutzungsübersicht</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="border border-slate-100 rounded-xl p-4">
+                <div className="text-2xl font-extrabold text-slate-900">{projectCount}</div>
+                <div className="text-xs text-slate-500 mt-0.5">Angelegte Projekte</div>
+                {tier === "FREE" && (
+                  <div className="mt-2">
+                    <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+                      <span>Kontingent</span>
+                      <span>{projectCount}/3</span>
+                    </div>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${projectCount >= 3 ? "bg-red-400" : "bg-[#27AE60]"}`}
+                        style={{ width: `${Math.min((projectCount / 3) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="border border-slate-100 rounded-xl p-4">
+                <div className="text-2xl font-extrabold text-slate-900">
+                  <span className={`text-sm font-bold px-2 py-1 rounded-full ${tierInfo.bg} ${tierInfo.color}`}>
+                    {tierInfo.label}
+                  </span>
+                </div>
+                <div className="text-xs text-slate-500 mt-2">Aktueller Plan</div>
+              </div>
+            </div>
+
+            <div className="mt-4 border border-slate-100 rounded-xl p-4">
+              <div className="text-xs font-semibold text-slate-600 mb-2">Enthaltene Funktionen</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                {tierInfo.features.map((f) => (
+                  <div key={f} className="flex items-center gap-2 text-xs text-slate-600">
+                    <CheckCircle2 size={12} className="text-[#27AE60] shrink-0" />
+                    {f}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Abonnement */}
+          {user.subscription && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-6">
+              <h2 className="text-sm font-bold text-slate-800 mb-4">Abonnement</h2>
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Status</span>
+                  <span className={`font-semibold ${user.subscription.status === "active" ? "text-[#27AE60]" : "text-amber-600"}`}>
+                    {user.subscription.status === "active" ? "Aktiv" : user.subscription.status}
+                  </span>
+                </div>
+                {user.subscription.currentPeriodEnd && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Nächste Abrechnung</span>
+                    <span className="font-semibold text-slate-700">
+                      {new Date(user.subscription.currentPeriodEnd).toLocaleDateString("de-DE")}
+                    </span>
+                  </div>
+                )}
+                <button className="w-full mt-2 flex items-center justify-center gap-2 border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-semibold py-2.5 rounded-xl transition-colors cursor-pointer">
+                  <CreditCard size={14} /> Zahlungsmethode verwalten
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right: Upgrade */}
+        {tier === "FREE" || tier === "STARTER" ? (
+          <div className="space-y-4">
+            <div className="bg-gradient-to-br from-[#1B4F72] to-[#2E86C1] rounded-2xl p-5 text-white">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap size={16} className="text-amber-300" />
+                <span className="text-xs font-bold uppercase tracking-widest text-blue-200">Upgrade</span>
+              </div>
+              <h3 className="text-base font-extrabold mb-1">Mehr Leistung</h3>
+              <p className="text-xs text-blue-200 leading-relaxed mb-4">
+                Schalten Sie KI-Matching, unbegrenzte Projekte und den vollständigen Datenbankzugriff frei.
+              </p>
+              <div className="space-y-2">
+                {UPGRADE_OPTIONS.filter((o) => o.tier !== tier).map((opt) => (
+                  <div
+                    key={opt.tier}
+                    className={`rounded-xl p-3 border cursor-pointer transition-all ${
+                      opt.highlight
+                        ? "bg-white/15 border-white/30"
+                        : "bg-white/8 border-white/15 hover:bg-white/12"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-bold">{opt.label}</div>
+                        <div className="text-xs text-blue-200">{opt.price}</div>
+                      </div>
+                      <ArrowUpRight size={14} className="text-blue-300" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200 p-5">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Sicherheit</h3>
+              <button className="w-full text-left text-sm text-slate-700 hover:text-slate-900 font-medium py-2 border-b border-slate-100 transition-colors cursor-pointer">
+                Passwort ändern
+              </button>
+              <button className="w-full text-left text-sm text-red-500 hover:text-red-700 font-medium py-2 transition-colors cursor-pointer">
+                Konto löschen
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className={`rounded-2xl border p-5 ${tierInfo.border} ${tierInfo.bg}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <Zap size={16} className={tierInfo.color} />
+                <span className={`text-xs font-bold ${tierInfo.color}`}>{tierInfo.label}</span>
+              </div>
+              <p className={`text-xs ${tierInfo.color} opacity-70 leading-relaxed`}>
+                Sie nutzen den vollen Funktionsumfang von FörderScan.
+              </p>
+            </div>
+            <div className="bg-white rounded-2xl border border-slate-200 p-5">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Sicherheit</h3>
+              <button className="w-full text-left text-sm text-slate-700 hover:text-slate-900 font-medium py-2 border-b border-slate-100 transition-colors cursor-pointer">
+                Passwort ändern
+              </button>
+              <button className="w-full text-left text-sm text-red-500 hover:text-red-700 font-medium py-2 transition-colors cursor-pointer">
+                Konto löschen
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

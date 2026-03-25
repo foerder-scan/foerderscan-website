@@ -1,0 +1,368 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  SUPER_ADMIN
+  REDAKTEUR
+  BERATER_PRO
+  BERATER_FREE
+  ENDKUNDE
+  TEAM_MITGLIED
+}
+
+enum Foerdergeber {
+  KFW
+  BAFA
+  LAND
+  KOMMUNE
+  EU
+}
+
+enum Foerdersegment {
+  BEG_WG
+  BEG_EM
+  BEG_KFN
+  EBW
+  LANDESFOERDERUNG
+  STEUERLICH
+  SONSTIGE
+}
+
+enum Foerderart {
+  ZUSCHUSS
+  TILGUNGSZUSCHUSS
+  KREDIT
+  STEUERBONUS
+  KOMBINATION
+}
+
+enum ProgrammStatus {
+  AKTIV
+  AUSLAUFEND
+  BEENDET
+  ANGEKUENDIGT
+}
+
+enum ProjektStatus {
+  RECHERCHE
+  ANTRAG_GESTELLT
+  ZUGESAGT
+  ABGERECHNET
+  ABGEBROCHEN
+}
+
+enum Gebaeudetyp {
+  EFH
+  ZFH
+  MFH
+  NWG
+  DENKMAL
+}
+
+enum Massnahmenart {
+  GEBAEUDEHUELLE
+  ANLAGENTECHNIK
+  HEIZUNG
+  EH_KOMPLETTSANIERUNG
+  FACHPLANUNG
+  ENERGIEBERATUNG
+}
+
+enum PricingTier {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+// ─── User & Auth ─────────────────────────────────────────────────────────────
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  emailVerified    DateTime?
+  name             String?
+  passwordHash     String?
+  role             UserRole  @default(BERATER_FREE)
+  beraternummer    String?   @unique
+  company          String?
+  phone            String?
+  twoFactorEnabled Boolean   @default(false)
+  twoFactorSecret  String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  lastLoginAt      DateTime?
+
+  projekte     Projekt[]
+  apiKeys      ApiKey[]
+  subscription Subscription?
+  sessions     Session[]
+  accounts     Account[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ─── Subscription ────────────────────────────────────────────────────────────
+
+model Subscription {
+  id                   String      @id @default(cuid())
+  userId               String      @unique
+  tier                 PricingTier @default(FREE)
+  stripeCustomerId     String?     @unique
+  stripeSubscriptionId String?     @unique
+  stripePriceId        String?
+  status               String      @default("active")
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean     @default(false)
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  name       String
+  keyHash    String    @unique
+  keyPrefix  String
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("api_keys")
+}
+
+// ─── Förderprogramme ─────────────────────────────────────────────────────────
+
+model FoerderProgramm {
+  id                          String         @id @default(cuid())
+  programmNummer              String?
+  name                        String
+  kurzname                    String?
+  foerdergeber                Foerdergeber
+  foerdersegment              Foerdersegment
+  foerderart                  Foerderart
+  basisfördersatz             Decimal        @db.Decimal(5, 4)
+  maxFoerdersatz              Decimal        @db.Decimal(5, 4)
+  maxFoerderfaehigeKosten     Int?
+  maxFoerderfaehigeKostenEE   Int?
+  kreditbetragMax             Int?
+  bewilligungszeitraum        Int?
+  status                      ProgrammStatus @default(AKTIV)
+  gueltigAb                   DateTime?
+  gueltigBis                  DateTime?
+  quellUrl                    String?
+  beschreibung                String?        @db.Text
+  hinweise                    String?        @db.Text
+  bundesweit                  Boolean        @default(true)
+  bundesland                  String?
+  letzteModifikation          DateTime       @default(now())
+  letzteAutoPruefung          DateTime?
+  createdAt                   DateTime       @default(now())
+  updatedAt                   DateTime       @updatedAt
+
+  boni               Bonus[]
+  kumulierungsregeln Kumulierungsregel[]
+  gebaeudetypen      ProgrammGebaeudetyp[]
+  massnahmenarten    ProgrammMassnahme[]
+  projektFoerderungen ProjektFoerderung[]
+
+  @@map("foerderprogramme")
+}
+
+model Bonus {
+  id            String  @id @default(cuid())
+  programmId    String
+  bezeichnung   String
+  kuerzel       String
+  bonusSatz     Decimal @db.Decimal(5, 4)
+  voraussetzung String? @db.Text
+  exklusiv      Boolean @default(false)
+
+  programm FoerderProgramm @relation(fields: [programmId], references: [id], onDelete: Cascade)
+
+  @@map("boni")
+}
+
+model Kumulierungsregel {
+  id               String   @id @default(cuid())
+  programmId       String
+  ausschlussTyp    String
+  beschreibung     String   @db.Text
+  maxFoerderquote  Decimal? @db.Decimal(5, 4)
+  kombinierbaresMit String?
+
+  programm FoerderProgramm @relation(fields: [programmId], references: [id], onDelete: Cascade)
+
+  @@map("kumulierungsregeln")
+}
+
+model ProgrammGebaeudetyp {
+  id          String      @id @default(cuid())
+  programmId  String
+  gebaeudetyp Gebaeudetyp
+
+  programm FoerderProgramm @relation(fields: [programmId], references: [id], onDelete: Cascade)
+
+  @@unique([programmId, gebaeudetyp])
+  @@map("programm_gebaeudetypen")
+}
+
+model ProgrammMassnahme {
+  id            String        @id @default(cuid())
+  programmId    String
+  massnahmenart Massnahmenart
+
+  programm FoerderProgramm @relation(fields: [programmId], references: [id], onDelete: Cascade)
+
+  @@unique([programmId, massnahmenart])
+  @@map("programm_massnahmen")
+}
+
+// ─── Projekte ────────────────────────────────────────────────────────────────
+
+model Projekt {
+  id                 String        @id @default(cuid())
+  userId             String
+  titel              String
+  kundeName          String
+  kundeEmail         String?
+  plz                String
+  ort                String?
+  strasse            String?
+  gebaeudetyp        Gebaeudetyp
+  baujahr            Int?
+  wohneinheiten      Int           @default(1)
+  istDenkmal         Boolean       @default(false)
+  ehStufe            String?
+  notizen            String?       @db.Text
+  status             ProjektStatus @default(RECHERCHE)
+  hatISFP            Boolean       @default(false)
+  istWPB             Boolean       @default(false)
+  istSerSan          Boolean       @default(false)
+  hatEEKlasse        Boolean       @default(false)
+  hatNHKlasse        Boolean       @default(false)
+  haushaltseinkommen Int?
+  istSelbstgenutzt   Boolean       @default(true)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  massnahmen   ProjektMassnahme[]
+  foerderungen ProjektFoerderung[]
+  dokumente    Dokument[]
+
+  @@map("projekte")
+}
+
+model ProjektMassnahme {
+  id                 String        @id @default(cuid())
+  projektId          String
+  massnahmenart      Massnahmenart
+  beschreibung       String?
+  investitionskosten Int?
+  geplantesDatum     DateTime?
+
+  projekt Projekt @relation(fields: [projektId], references: [id], onDelete: Cascade)
+
+  @@map("projekt_massnahmen")
+}
+
+model ProjektFoerderung {
+  id                String    @id @default(cuid())
+  projektId         String
+  programmId        String
+  beantragterBetrag Int?
+  bewilligterBetrag Int?
+  antragsDatum      DateTime?
+  bewilligungsDatum DateTime?
+  ablaufDatum       DateTime?
+  aktiveBonus       String[]
+  notizen           String?   @db.Text
+
+  projekt  Projekt         @relation(fields: [projektId], references: [id], onDelete: Cascade)
+  programm FoerderProgramm @relation(fields: [programmId], references: [id])
+
+  @@map("projekt_foerderungen")
+}
+
+model Dokument {
+  id         String   @id @default(cuid())
+  projektId  String
+  name       String
+  typ        String
+  dateipfad  String
+  uploadedAt DateTime @default(now())
+
+  projekt Projekt @relation(fields: [projektId], references: [id], onDelete: Cascade)
+
+  @@map("dokumente")
+}
+
+// ─── Audit Log ───────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  aktion    String
+  ressource String?
+  details   Json?
+  ipAdresse String?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
