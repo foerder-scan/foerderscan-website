@@ -1,7 +1,23 @@
-import { PrismaClient, Foerdergeber, Foerdersegment, Foerderart, ProgrammStatus, Gebaeudetyp, Massnahmenart, UserRole } from "@prisma/client";
-import bcrypt from "bcryptjs";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { PrismaClient } = require("@prisma/client");
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { PrismaPg } = require("@prisma/adapter-pg");
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const bcrypt = require("bcryptjs");
 
-const prisma = new PrismaClient();
+type Foerdergeber = "KFW" | "BAFA" | "LAND" | "KOMMUNE" | "EU";
+type Foerdersegment = "BEG_WG" | "BEG_EM" | "BEG_KFN" | "EBW" | "LANDESFOERDERUNG" | "STEUERLICH" | "SONSTIGE";
+type Foerderart = "ZUSCHUSS" | "TILGUNGSZUSCHUSS" | "KREDIT" | "STEUERBONUS" | "KOMBINATION";
+type ProgrammStatus = "AKTIV" | "AUSLAUFEND" | "BEENDET" | "ANGEKUENDIGT";
+type Gebaeudetyp = "EFH" | "ZFH" | "MFH" | "NWG" | "DENKMAL";
+type Massnahmenart = "GEBAEUDEHUELLE" | "ANLAGENTECHNIK" | "HEIZUNG" | "EH_KOMPLETTSANIERUNG" | "FACHPLANUNG" | "ENERGIEBERATUNG";
+type UserRole = "SUPER_ADMIN" | "REDAKTEUR" | "BERATER_PRO" | "BERATER_FREE" | "ENDKUNDE" | "TEAM_MITGLIED";
+
+// Suppress unused type warnings
+type _Types = Foerdergeber | Foerdersegment | Foerderart | ProgrammStatus | Gebaeudetyp | Massnahmenart | UserRole;
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log("🌱 Starte Seed-Prozess...");
