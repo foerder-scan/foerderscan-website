@@ -14,6 +14,8 @@ import {
   Database,
   ShieldCheck,
   ArrowRightLeft,
+  Webhook,
+  Terminal,
 } from "lucide-react";
 
 const navItems = [
@@ -75,6 +77,25 @@ export default function DashboardSidebar() {
           );
         })}
 
+        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest px-3 pb-2 pt-4">
+          Entwickler
+        </p>
+        <Link
+          href="/dashboard/webhooks"
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+            isActive("/dashboard/webhooks")
+              ? "bg-[#EBF5FB] text-[#1B4F72]"
+              : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+          }`}
+        >
+          <Webhook
+            size={17}
+            strokeWidth={isActive("/dashboard/webhooks") ? 2.5 : 1.75}
+            className={isActive("/dashboard/webhooks") ? "text-[#1B4F72]" : "text-slate-400"}
+          />
+          Webhooks
+        </Link>
+
         {isAdmin && (
           <>
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest px-3 pb-2 pt-4">
@@ -83,14 +104,32 @@ export default function DashboardSidebar() {
             <Link
               href="/dashboard/admin/programme"
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                isActive("/dashboard/admin")
+                isActive("/dashboard/admin/programme")
                   ? "bg-amber-50 text-amber-800"
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
-              <ShieldCheck size={17} strokeWidth={isActive("/dashboard/admin") ? 2.5 : 1.75}
-                className={isActive("/dashboard/admin") ? "text-amber-700" : "text-slate-400"} />
+              <ShieldCheck
+                size={17}
+                strokeWidth={isActive("/dashboard/admin/programme") ? 2.5 : 1.75}
+                className={isActive("/dashboard/admin/programme") ? "text-amber-700" : "text-slate-400"}
+              />
               Förderprogramme
+            </Link>
+            <Link
+              href="/dashboard/admin/cmd"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                isActive("/dashboard/admin/cmd")
+                  ? "bg-amber-50 text-amber-800"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+              }`}
+            >
+              <Terminal
+                size={17}
+                strokeWidth={isActive("/dashboard/admin/cmd") ? 2.5 : 1.75}
+                className={isActive("/dashboard/admin/cmd") ? "text-amber-700" : "text-slate-400"}
+              />
+              CMD-Dashboard
             </Link>
           </>
         )}

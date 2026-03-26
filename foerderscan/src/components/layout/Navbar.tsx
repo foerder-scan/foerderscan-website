@@ -21,6 +21,7 @@ const navLinks = [
       },
     ],
   },
+  { label: "Wissensportal", href: "/blog" },
   { label: "Preise", href: "/preise" },
   { label: "Über uns", href: "/ueber-uns" },
   { label: "Kontakt", href: "/kontakt" },
@@ -153,6 +154,13 @@ export default function Navbar() {
               onClick={() => setMenuOpen(false)}
             >
               Features – Eigentümer
+            </Link>
+            <Link
+              href="/blog"
+              className="block px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
+              onClick={() => setMenuOpen(false)}
+            >
+              Wissensportal
             </Link>
             <Link
               href="/preise"

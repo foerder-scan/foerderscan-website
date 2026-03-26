@@ -101,11 +101,12 @@ model User {
   updatedAt        DateTime  @updatedAt
   lastLoginAt      DateTime?
 
-  projekte     Projekt[]
-  apiKeys      ApiKey[]
-  subscription Subscription?
-  sessions     Session[]
-  accounts     Account[]
+  projekte          Projekt[]
+  apiKeys           ApiKey[]
+  subscription      Subscription?
+  sessions          Session[]
+  accounts          Account[]
+  webhookEndpoints  WebhookEndpoint[]
 
   @@map("users")
 }
@@ -368,6 +369,38 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+
+// ─── Webhooks ─────────────────────────────────────────────────────────────────
+
+model WebhookEndpoint {
+  id        String   @id @default(cuid())
+  userId    String
+  url       String
+  secret    String
+  events    String[]
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries WebhookDelivery[]
+
+  @@map("webhook_endpoints")
+}
+
+model WebhookDelivery {
+  id         String   @id @default(cuid())
+  endpointId String
+  event      String
+  payload    Json
+  statusCode Int?
+  success    Boolean  @default(false)
+  attempt    Int      @default(1)
+  createdAt  DateTime @default(now())
+
+  endpoint WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@map("webhook_deliveries")
+}
 
 // ─── Passwort-Reset ───────────────────────────────────────────────────────────
 
