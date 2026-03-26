@@ -3,23 +3,33 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { UserRole } from "@prisma/client";
 import { sendVerificationEmail } from "@/lib/email";
+import { rateLimit, getIp } from "@/lib/rate-limit";
+import { registerSchema } from "@/lib/validation";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
-  const { name, email, password, company, role } = await req.json();
+  // Rate Limit: max 5 Registrierungen pro IP pro Stunde
+  const rl = rateLimit(`register:${getIp(req)}`, { limit: 5, windowSec: 3600 });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Zu viele Versuche. Bitte versuchen Sie es später erneut." },
+      { status: 429 }
+    );
+  }
 
-  if (!email || !password || !name)
-    return NextResponse.json({ error: "Pflichtfelder fehlen." }, { status: 400 });
-
-  if (password.length < 8)
-    return NextResponse.json({ error: "Passwort muss mindestens 8 Zeichen haben." }, { status: 400 });
+  const body = await req.json();
+  const parsed = registerSchema.safeParse(body);
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message ?? "Ungültige Eingabe";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+  const { name, email, password, company, role } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing)
     return NextResponse.json({ error: "E-Mail wird bereits verwendet." }, { status: 409 });
 
-  const validRoles: UserRole[] = ["BERATER_FREE", "ENDKUNDE"];
-  const userRole = validRoles.includes(role) ? (role as UserRole) : "BERATER_FREE";
+  const userRole: UserRole = role === "ENDKUNDE" ? "ENDKUNDE" : "BERATER_FREE";
 
   const hash = await bcrypt.hash(password, 12);
 
