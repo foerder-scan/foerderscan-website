@@ -1,0 +1,75 @@
+name: Deploy to All-Inkl Root Server
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: foerderscan/package-lock.json
+
+      - name: Install dependencies
+        working-directory: foerderscan
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: foerderscan
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma generate
+
+      - name: Run DB migrations
+        working-directory: foerderscan
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma migrate deploy
+
+      - name: Build Next.js
+        working-directory: foerderscan
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXTAUTH_URL }}
+        run: npm run build
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -e
+            cd /var/www/foerderscan
+
+            # Pull latest code
+            git pull origin main
+
+            # Install production deps only
+            cd foerderscan
+            npm ci --omit=dev
+
+            # Regenerate Prisma client on server
+            npx prisma generate
+
+            # Reload app with PM2 (zero-downtime)
+            pm2 reload foerderscan --update-env || pm2 start ecosystem.config.js
+
+            echo "Deploy complete: $(date)"
