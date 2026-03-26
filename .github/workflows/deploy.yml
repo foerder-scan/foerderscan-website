@@ -1,54 +1,69 @@
-name: Deploy to All-Inkl Root Server
+name: Deploy → Hostinger VPS
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      skip_build:
+        description: "Skip build (nur restart)"
+        required: false
+        default: "false"
 
 jobs:
   deploy:
+    name: Build & Deploy
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v4
+      # ── Code auschecken ────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      # ── Node.js Setup ──────────────────────────────────
+      - name: Node.js 20 einrichten
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
           cache-dependency-path: foerderscan/package-lock.json
 
-      - name: Install dependencies
+      # ── Dependencies ───────────────────────────────────
+      - name: Dependencies installieren
         working-directory: foerderscan
         run: npm ci
 
-      - name: Generate Prisma client
+      # ── Prisma ─────────────────────────────────────────
+      - name: Prisma Client generieren
         working-directory: foerderscan
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npx prisma generate
 
-      - name: Run DB migrations
+      # ── DB-Migration ───────────────────────────────────
+      - name: Datenbank-Migration ausführen
         working-directory: foerderscan
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npx prisma migrate deploy
 
-      - name: Build Next.js
+      # ── Build ──────────────────────────────────────────
+      - name: Next.js bauen
+        if: ${{ github.event.inputs.skip_build != 'true' }}
         working-directory: foerderscan
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXTAUTH_URL }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXTAUTH_URL }}
         run: npm run build
 
-      - name: Deploy via SSH
+      # ── Deploy via SSH ─────────────────────────────────
+      - name: Auf Hostinger deployen
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -57,19 +72,30 @@ jobs:
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
             set -e
+            echo "── Deploy gestartet: $(date) ──"
+
             cd /var/www/foerderscan
 
-            # Pull latest code
-            git pull origin main
+            # Neuesten Code holen
+            git fetch origin main
+            git reset --hard origin/main
 
-            # Install production deps only
+            # In App-Verzeichnis wechseln
             cd foerderscan
+
+            # Prod-Dependencies installieren
             npm ci --omit=dev
 
-            # Regenerate Prisma client on server
+            # Prisma Client auf Server regenerieren
             npx prisma generate
 
-            # Reload app with PM2 (zero-downtime)
-            pm2 reload foerderscan --update-env || pm2 start ecosystem.config.js
+            # Next.js Build auf Server (nutzt gespeicherten Cache)
+            export $(cat .env.production | grep -v '^#' | xargs)
+            npm run build
 
-            echo "Deploy complete: $(date)"
+            # PM2 zero-downtime reload
+            pm2 reload foerderscan --update-env || pm2 start ecosystem.config.js
+            pm2 save
+
+            echo "── Deploy erfolgreich: $(date) ──"
+            pm2 list
