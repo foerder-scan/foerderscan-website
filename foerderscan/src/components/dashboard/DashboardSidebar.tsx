@@ -13,12 +13,14 @@ import {
   Bell,
   Database,
   ShieldCheck,
+  ArrowRightLeft,
 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Übersicht", icon: LayoutDashboard, exact: true },
   { href: "/dashboard/projekte", label: "Projekte", icon: FolderKanban },
   { href: "/dashboard/foerderrechner", label: "Förderrechner", icon: Calculator },
+  { href: "/dashboard/vergleich", label: "Vergleichstool", icon: ArrowRightLeft },
   { href: "/dashboard/datenbank", label: "Förderdatenbank", icon: Database },
   { href: "/dashboard/profil", label: "Profil & Abo", icon: User },
 ];

@@ -23,6 +23,7 @@ const navLinks = [
   },
   { label: "Preise", href: "/preise" },
   { label: "Über uns", href: "/ueber-uns" },
+  { label: "Kontakt", href: "/kontakt" },
 ];
 
 export default function Navbar() {

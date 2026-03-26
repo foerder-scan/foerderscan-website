@@ -4,6 +4,7 @@ import { User, Mail, Calendar, CheckCircle2, Zap } from "lucide-react";
 import { StripePortalButton, UpgradePanel, AccountActions } from "./ProfilActions";
 import NotificationSettings from "./NotificationSettings";
 import ApiKeyManager from "./ApiKeyManager";
+import TwoFactorSetup from "./TwoFactorSetup";
 
 const TIER_INFO: Record<string, {
   label: string;
@@ -105,6 +106,16 @@ export default async function ProfilPage() {
                       {user.email}
                     </div>
                   </div>
+                  {user.beraternummer && (
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500 mb-1.5 flex items-center gap-1.5">
+                        <Zap size={11} /> Beraternummer
+                      </label>
+                      <div className="text-sm font-mono font-semibold text-slate-800 border border-slate-200 rounded-xl px-3 py-2.5 bg-slate-50">
+                        {user.beraternummer}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-slate-500 mb-1.5 flex items-center gap-1.5">
@@ -163,6 +174,9 @@ export default async function ProfilPage() {
               </div>
             </div>
           </div>
+
+          {/* 2FA */}
+          <TwoFactorSetup initialEnabled={user.twoFactorEnabled} />
 
           {/* Benachrichtigungen */}
           <NotificationSettings initialEnabled={user.emailAlertsEnabled} />
