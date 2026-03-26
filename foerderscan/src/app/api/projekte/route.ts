@@ -1,5 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logAudit } from "@/lib/audit";
+import { getIp } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -48,6 +50,14 @@ export async function POST(req: NextRequest) {
         })),
       },
     },
+  });
+
+  await logAudit({
+    userId,
+    aktion: "PROJEKT_ERSTELLT",
+    ressource: projekt.id,
+    details: { titel: projekt.titel },
+    ipAdresse: getIp(req),
   });
 
   return NextResponse.json({ id: projekt.id }, { status: 201 });

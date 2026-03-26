@@ -94,9 +94,10 @@ model User {
   beraternummer    String?   @unique
   company          String?
   phone            String?
-  twoFactorEnabled Boolean   @default(false)
-  twoFactorSecret  String?
-  createdAt        DateTime  @default(now())
+  twoFactorEnabled   Boolean   @default(false)
+  twoFactorSecret    String?
+  emailAlertsEnabled Boolean   @default(true)
+  createdAt          DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   lastLoginAt      DateTime?
 

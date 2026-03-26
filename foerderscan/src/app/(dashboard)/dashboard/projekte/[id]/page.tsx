@@ -12,8 +12,10 @@ import {
   FileText,
   Euro,
   Pencil,
+  Download,
 } from "lucide-react";
 import FoerderungenSection from "@/components/dashboard/FoerderungenSection";
+import MatchingSection from "@/components/dashboard/MatchingSection";
 
 const STATUS: Record<string, { label: string; color: string; bg: string }> = {
   RECHERCHE: { label: "Recherche", color: "text-slate-600", bg: "bg-slate-100" },
@@ -87,12 +89,20 @@ export default async function ProjektDetailPage({ params }: { params: Promise<{ 
             </div>
           </div>
         </div>
-        <Link
-          href={`/dashboard/projekte/${projekt.id}/bearbeiten`}
-          className="hidden sm:flex items-center gap-2 border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold px-3 py-2 rounded-xl transition-colors cursor-pointer"
-        >
-          <Pencil size={12} /> Bearbeiten
-        </Link>
+        <div className="hidden sm:flex items-center gap-2">
+          <Link
+            href={`/dashboard/projekte/${projekt.id}/export`}
+            className="flex items-center gap-2 border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold px-3 py-2 rounded-xl transition-colors cursor-pointer"
+          >
+            <Download size={12} /> PDF
+          </Link>
+          <Link
+            href={`/dashboard/projekte/${projekt.id}/bearbeiten`}
+            className="flex items-center gap-2 border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold px-3 py-2 rounded-xl transition-colors cursor-pointer"
+          >
+            <Pencil size={12} /> Bearbeiten
+          </Link>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -150,6 +160,13 @@ export default async function ProjektDetailPage({ params }: { params: Promise<{ 
               </div>
             )}
           </div>
+
+          {/* KI-Matching */}
+          <MatchingSection
+            projektId={projekt.id}
+            gebaeudetyp={projekt.gebaeudetyp ?? ""}
+            massnahmenarten={projekt.massnahmen.map((m) => m.massnahmenart)}
+          />
 
           {/* Förderungen */}
           <FoerderungenSection

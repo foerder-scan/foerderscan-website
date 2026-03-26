@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CreditCard, Loader2, ArrowUpRight, Zap } from "lucide-react";
+import { CreditCard, Loader2, ArrowUpRight, Zap, Download } from "lucide-react";
 
 interface UpgradeOption {
   tier: string;
@@ -79,6 +79,40 @@ export function UpgradePanel({ currentTier, options }: { currentTier: string; op
   );
 }
 
+export function DataExportButton() {
+  const [downloading, setDownloading] = useState(false);
+
+  const handleExport = async () => {
+    setDownloading(true);
+    try {
+      const res = await fetch("/api/account/export");
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `foerderscan-daten-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Fehler beim Exportieren der Daten.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleExport}
+      disabled={downloading}
+      className="w-full text-left text-sm text-slate-700 hover:text-slate-900 font-medium py-2 border-b border-slate-100 transition-colors cursor-pointer disabled:opacity-60 flex items-center gap-2"
+    >
+      {downloading ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+      {downloading ? "Wird exportiert …" : "Meine Daten exportieren (DSGVO)"}
+    </button>
+  );
+}
+
 export function AccountActions() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -115,6 +149,7 @@ export function AccountActions() {
       >
         Passwort ändern
       </a>
+      <DataExportButton />
       <button
         onClick={handleDelete}
         disabled={deleting}

@@ -5,6 +5,7 @@ import { UserRole } from "@prisma/client";
 import { sendVerificationEmail } from "@/lib/email";
 import { rateLimit, getIp } from "@/lib/rate-limit";
 import { registerSchema } from "@/lib/validation";
+import { logAudit } from "@/lib/audit";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
@@ -51,6 +52,12 @@ export async function POST(req: NextRequest) {
     data: { identifier: email, token, expires },
   });
   await sendVerificationEmail(email, token, name).catch(() => {});
+
+  await logAudit({
+    aktion: "USER_REGISTRIERT",
+    details: { email, role: userRole },
+    ipAdresse: getIp(req),
+  });
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }

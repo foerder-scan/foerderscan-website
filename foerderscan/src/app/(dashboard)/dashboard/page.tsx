@@ -1,10 +1,12 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { FolderKanban, Calculator, Database, TrendingUp, Clock, AlertTriangle, ArrowRight, Plus } from "lucide-react";
+import { FolderKanban, Calculator, Database, TrendingUp, Clock, AlertTriangle, ArrowRight, Plus, Bell, Sparkles, ExternalLink } from "lucide-react";
 
 async function getDashboardData(userId: string) {
-  const [projekte, programme] = await Promise.all([
+  const vor30Tagen = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  const [projekte, programmeCount, neueProgramme, ablaufwarnungen] = await Promise.all([
     prisma.projekt.findMany({
       where: { userId },
       include: { massnahmen: true, foerderungen: { include: { programm: true } } },
@@ -12,8 +14,31 @@ async function getDashboardData(userId: string) {
       take: 5,
     }),
     prisma.foerderProgramm.count({ where: { status: "AKTIV" } }),
+    // Programme neu oder geändert in letzten 30 Tagen
+    prisma.foerderProgramm.findMany({
+      where: {
+        status: { in: ["AKTIV", "AUSLAUFEND", "ANGEKUENDIGT"] },
+        letzteModifikation: { gte: vor30Tagen },
+      },
+      orderBy: { letzteModifikation: "desc" },
+      take: 5,
+      select: { id: true, name: true, foerdergeber: true, status: true, letzteModifikation: true, basisfördersatz: true },
+    }),
+    // Aktive Projekte mit AUSLAUFEND-Programmen
+    prisma.projektFoerderung.findMany({
+      where: {
+        projekt: { userId, status: { notIn: ["ABGERECHNET", "ABGEBROCHEN"] } },
+        programm: { status: "AUSLAUFEND" },
+      },
+      include: {
+        projekt: { select: { id: true, titel: true } },
+        programm: { select: { name: true, gueltigBis: true } },
+      },
+      take: 5,
+    }),
   ]);
-  return { projekte, programmeCount: programme };
+
+  return { projekte, programmeCount, neueProgramme, ablaufwarnungen };
 }
 
 const statusLabel: Record<string, { label: string; color: string }> = {
@@ -29,7 +54,7 @@ export default async function DashboardHome() {
   const userId = session?.user?.id;
   if (!userId) return null;
 
-  const { projekte, programmeCount } = await getDashboardData(userId);
+  const { projekte, programmeCount, neueProgramme, ablaufwarnungen } = await getDashboardData(userId);
 
   const totalFoerderung = projekte.reduce((sum, p) => {
     return sum + p.foerderungen.reduce((s, f) => s + (f.beantragterBetrag ?? 0), 0);
@@ -137,17 +162,72 @@ export default async function DashboardHome() {
             </div>
           </div>
 
-          {/* Förder-News Platzhalter */}
-          <div className="bg-amber-50 rounded-2xl border border-amber-100 p-5">
-            <div className="flex items-start gap-3">
-              <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" strokeWidth={2} />
-              <div>
-                <div className="text-xs font-bold text-amber-800 mb-1">Aktuelle Meldung</div>
-                <p className="text-xs text-amber-700 leading-relaxed">
-                  BEG EM Heizungsförderung: Der Geschwindigkeitsbonus gilt weiterhin bis 31.12.2028 für den Austausch von Öl-/Gasheizungen.
-                </p>
+          {/* Ablaufwarnungen */}
+          {ablaufwarnungen.length > 0 && (
+            <div className="bg-amber-50 rounded-2xl border border-amber-100 p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle size={14} className="text-amber-500" strokeWidth={2} />
+                <span className="text-xs font-bold text-amber-800">Ablaufwarnungen ({ablaufwarnungen.length})</span>
+              </div>
+              <div className="space-y-2">
+                {ablaufwarnungen.map((f) => (
+                  <Link
+                    key={f.projekt.id + f.programm.name}
+                    href={`/dashboard/projekte/${f.projekt.id}`}
+                    className="flex items-start justify-between gap-2 text-xs hover:opacity-80 transition-opacity"
+                  >
+                    <div>
+                      <div className="font-semibold text-amber-900 truncate">{f.programm.name}</div>
+                      <div className="text-amber-700">{f.projekt.titel}</div>
+                    </div>
+                    {f.programm.gueltigBis && (
+                      <span className="shrink-0 text-amber-600 font-semibold">
+                        bis {new Date(f.programm.gueltigBis).toLocaleDateString("de-DE", { day: "2-digit", month: "short" })}
+                      </span>
+                    )}
+                  </Link>
+                ))}
               </div>
             </div>
+          )}
+
+          {/* Förder-News */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Bell size={13} className="text-[#1B4F72]" />
+                <span className="text-xs font-bold text-slate-800">Förder-News</span>
+              </div>
+              <span className="text-[10px] text-slate-400">letzte 30 Tage</span>
+            </div>
+            {neueProgramme.length === 0 ? (
+              <p className="text-xs text-slate-400">Keine Änderungen in den letzten 30 Tagen.</p>
+            ) : (
+              <div className="space-y-2.5">
+                {neueProgramme.map((p) => (
+                  <Link
+                    key={p.id}
+                    href="/dashboard/datenbank"
+                    className="flex items-start justify-between gap-2 hover:opacity-80 transition-opacity"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold text-slate-800 truncate">{p.name}</div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                          p.status === "AUSLAUFEND" ? "bg-amber-50 text-amber-700" :
+                          p.status === "ANGEKUENDIGT" ? "bg-blue-50 text-blue-700" :
+                          "bg-[#EAFAF1] text-[#27AE60]"
+                        }`}>
+                          {p.status === "AUSLAUFEND" ? "Auslaufend" : p.status === "ANGEKUENDIGT" ? "Neu" : "Aktiv"}
+                        </span>
+                        <span className="text-[10px] text-slate-400">{p.foerdergeber}</span>
+                      </div>
+                    </div>
+                    <ExternalLink size={11} className="text-slate-300 shrink-0 mt-1" />
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

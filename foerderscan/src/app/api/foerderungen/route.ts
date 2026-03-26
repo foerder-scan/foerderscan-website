@@ -1,5 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logAudit } from "@/lib/audit";
+import { getIp } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -63,6 +65,14 @@ export async function POST(req: NextRequest) {
     include: { programm: true },
   });
 
+  await logAudit({
+    userId,
+    aktion: "FOERDERUNG_HINZUGEFUEGT",
+    ressource: foerderung.id,
+    details: { projektId, programmId, programmName: programm.name },
+    ipAdresse: getIp(req),
+  });
+
   return NextResponse.json(foerderung, { status: 201 });
 }
 
@@ -89,5 +99,14 @@ export async function DELETE(req: NextRequest) {
   }
 
   await prisma.projektFoerderung.delete({ where: { id } });
+
+  await logAudit({
+    userId,
+    aktion: "FOERDERUNG_ENTFERNT",
+    ressource: id,
+    details: { projektId: foerderung.projektId },
+    ipAdresse: getIp(req),
+  });
+
   return NextResponse.json({ ok: true });
 }

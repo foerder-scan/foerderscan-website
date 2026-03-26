@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
-  Calculator,
   Home,
   Building2,
   Zap,
@@ -16,9 +15,30 @@ import {
   Info,
   CheckCircle2,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+const MASSNAHME_TO_ENUM: Record<string, string[]> = {
+  komplettsanierung: ["EH_KOMPLETTSANIERUNG"],
+  heizung: ["HEIZUNG"],
+  daemmung: ["GEBAEUDEHUELLE"],
+  fenster: ["GEBAEUDEHUELLE"],
+  lueftung: ["ANLAGENTECHNIK"],
+  solar: ["ANLAGENTECHNIK"],
+};
+
+interface DbProgramm {
+  id: string;
+  name: string;
+  foerdergeber: string;
+  foerderart: string;
+  effektivSatz: number;
+  maxFoerderfaehigeKosten: number | null;
+  quellUrl: string | null;
+  aktiveBoni: string[];
+}
 
 type Gebaeudetyp = "EFH" | "ZFH" | "MFH" | "NWG";
 type Massnahme = "komplettsanierung" | "heizung" | "daemmung" | "fenster" | "lueftung" | "solar";
@@ -213,9 +233,32 @@ export default function FoerderrechnerPage() {
     boniErneuerbareEnergie: true,
   });
 
+  const [dbProgramme, setDbProgramme] = useState<DbProgramm[]>([]);
+  const [dbLoading, setDbLoading] = useState(false);
+
   const ergebnisse = berechneForederung(input);
   const gesamtFoerderung = ergebnisse.reduce((sum, e) => sum + e.berechneterBetrag, 0);
   const gesamtFoerdersatz = input.investition > 0 ? gesamtFoerderung / input.investition : 0;
+
+  // Fetch DB programs when entering step 3
+  useEffect(() => {
+    if (step !== 3) return;
+    setDbLoading(true);
+    fetch("/api/matching", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        gebaeudetyp: input.gebaeudetyp,
+        massnahmenarten: MASSNAHME_TO_ENUM[input.massnahme] ?? [],
+        hatISFP: input.boniSerienSanierung,
+        hatEEKlasse: input.boniEEKlasse,
+      }),
+    })
+      .then((r) => r.json())
+      .then((d) => setDbProgramme(d.results ?? []))
+      .catch(() => setDbProgramme([]))
+      .finally(() => setDbLoading(false));
+  }, [step, input.gebaeudetyp, input.massnahme, input.boniSerienSanierung, input.boniEEKlasse]);
 
   const reset = useCallback(() => {
     setStep(1);
@@ -490,6 +533,41 @@ export default function FoerderrechnerPage() {
                   </div>
                 )}
               </div>
+
+              {/* DB Programs from live database */}
+              {(dbLoading || dbProgramme.length > 0) && (
+                <div className="bg-white rounded-2xl border border-slate-200 p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-sm font-bold text-slate-800">Live aus Ihrer Förderdatenbank</h2>
+                    {dbLoading && <Loader2 size={14} className="animate-spin text-slate-400" />}
+                  </div>
+                  {!dbLoading && dbProgramme.length === 0 && (
+                    <p className="text-sm text-slate-400 text-center py-4">Keine weiteren Programme in der Datenbank.</p>
+                  )}
+                  {!dbLoading && dbProgramme.length > 0 && (
+                    <div className="space-y-2">
+                      {dbProgramme.slice(0, 5).map((p) => (
+                        <div key={p.id} className="flex items-center justify-between py-2.5 border-b border-slate-100 last:border-0">
+                          <div className="flex-1 min-w-0 pr-4">
+                            <div className="text-sm font-semibold text-slate-800 truncate">{p.name}</div>
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${FOERDERGEBER_COLOR[p.foerdergeber] ?? "bg-slate-100 text-slate-600 border-slate-200"}`}>
+                                {p.foerdergeber}
+                              </span>
+                              {p.aktiveBoni.map((b) => (
+                                <span key={b} className="text-[10px] bg-amber-50 text-amber-700 border border-amber-100 px-1.5 py-0.5 rounded-full">+{b}</span>
+                              ))}
+                            </div>
+                          </div>
+                          <span className="text-sm font-extrabold text-[#27AE60] shrink-0">
+                            {(p.effektivSatz * 100).toFixed(0)} %
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="flex gap-3">
                 <button

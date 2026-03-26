@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { User, Mail, Calendar, CheckCircle2, Zap } from "lucide-react";
 import { StripePortalButton, UpgradePanel, AccountActions } from "./ProfilActions";
+import NotificationSettings from "./NotificationSettings";
+import ApiKeyManager from "./ApiKeyManager";
 
 const TIER_INFO: Record<string, {
   label: string;
@@ -53,7 +55,7 @@ export default async function ProfilPage() {
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    include: { subscription: true },
+    include: { subscription: true, apiKeys: { where: { isActive: true } } },
   });
   if (!user) return null;
 
@@ -161,6 +163,14 @@ export default async function ProfilPage() {
               </div>
             </div>
           </div>
+
+          {/* Benachrichtigungen */}
+          <NotificationSettings initialEnabled={user.emailAlertsEnabled} />
+
+          {/* API-Keys */}
+          {(tier === "PROFESSIONAL" || tier === "ENTERPRISE") && (
+            <ApiKeyManager />
+          )}
 
           {/* Abonnement */}
           {user.subscription && (
