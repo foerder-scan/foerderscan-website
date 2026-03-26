@@ -15,9 +15,9 @@ const footerLinks = {
     { label: "Karriere", href: "#" },
   ],
   Rechtliches: [
-    { label: "Datenschutzerklärung", href: "#" },
-    { label: "Impressum", href: "#" },
-    { label: "AGB", href: "#" },
+    { label: "Datenschutzerklärung", href: "/datenschutz" },
+    { label: "Impressum", href: "/impressum" },
+    { label: "AGB", href: "/agb" },
     { label: "Cookie-Einstellungen", href: "#" },
   ],
 };
@@ -58,7 +58,7 @@ export default function Footer() {
                 <X size={16} />
               </a>
               <a
-                href="mailto:kontakt@foerderscan.de"
+                href="mailto:info@foerderscan.de"
                 aria-label="E-Mail"
                 className="w-9 h-9 flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer"
               >
@@ -91,7 +91,7 @@ export default function Footer() {
 
         <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-slate-500">
-            © {new Date().getFullYear()} FörderScan GmbH. Alle Rechte
+            © {new Date().getFullYear()} FörderScan. Alle Rechte
             vorbehalten.
           </p>
           <p className="text-xs text-slate-500">

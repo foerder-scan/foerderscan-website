@@ -1,32 +1,18 @@
-import { Star } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Zap, Clock, ShieldCheck } from "lucide-react";
 
-const testimonials = [
+const benefits = [
   {
-    name: "Markus Berger",
-    role: "Energieeffizienz-Experte, München",
-    quote:
-      "Früher habe ich pro Projekt 2–3 Stunden mit der Förderrecherche verbracht. Mit FörderScan sind es noch 20 Minuten. Das Matching mit den BEG-Boni ist präzise und zuverlässig.",
-    stars: 5,
-    initials: "MB",
-    color: "bg-[#1B4F72]",
+    icon: Clock,
+    text: "Spart 2–3 Stunden Recherche pro Projekt",
   },
   {
-    name: "Sandra Koch",
-    role: "Energieberaterin, Hamburg",
-    quote:
-      "Der KI-Agent, der Programmänderungen automatisch erkennt, ist Gold wert. Ich werde immer sofort benachrichtigt – keine bösen Überraschungen mehr bei Antragsstellung.",
-    stars: 5,
-    initials: "SK",
-    color: "bg-[#2E86C1]",
+    icon: ShieldCheck,
+    text: "Immer aktuelle Förderdaten – automatisch geprüft",
   },
   {
-    name: "Thomas Wagner",
-    role: "Eigentümer, Einfamilienhaus, Frankfurt",
-    quote:
-      "Ich hatte keine Ahnung, welche Förderungen mir zustehen. Der Schnellcheck hat in wenigen Klicks gezeigt, dass ich über 18.000 € Förderung für meine Heizung bekommen kann.",
-    stars: 5,
-    initials: "TW",
-    color: "bg-[#27AE60]",
+    icon: Zap,
+    text: "Passende Programme in Sekunden gefunden",
   },
 ];
 
@@ -34,52 +20,42 @@ export default function Testimonials() {
   return (
     <section className="py-20 lg:py-28 bg-[#F8FAFC]">
       <div className="section-container">
-        <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EBF5FB] text-[#1B4F72] text-xs font-semibold mb-4 border border-[#AED6F1]">
-            Stimmen unserer Nutzer
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EBF5FB] text-[#1B4F72] text-xs font-semibold mb-6 border border-[#AED6F1]">
+            Jetzt in der Beta
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
-            Was Profis und Eigentümer sagen
+            Seien Sie einer der Ersten
           </h2>
-          <p className="text-base text-slate-500 max-w-xl mx-auto">
-            Energieberater und Eigentümer aus ganz Deutschland vertrauen auf
-            FörderScan.
+          <p className="text-base text-slate-500 max-w-xl mx-auto mb-10">
+            FörderScan befindet sich im Aufbau. Beta-Nutzer bekommen
+            kostenlosen Zugang, direkten Draht zum Gründer und prägen aktiv
+            die Roadmap.
           </p>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {testimonials.map((t, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col"
-            >
-              <div className="flex gap-0.5 mb-4">
-                {Array.from({ length: t.stars }).map((_, j) => (
-                  <Star
-                    key={j}
-                    size={14}
-                    className="text-amber-400 fill-amber-400"
-                  />
-                ))}
-              </div>
-              <p className="text-sm text-slate-700 leading-relaxed flex-1 mb-6">
-                &ldquo;{t.quote}&rdquo;
-              </p>
-              <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
-                <div
-                  className={`w-9 h-9 rounded-full ${t.color} text-white text-xs font-bold flex items-center justify-center shrink-0`}
-                >
-                  {t.initials}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+            {benefits.map((b, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-xl border border-slate-200 px-5 py-4 flex items-start gap-3 text-left"
+              >
+                <div className="w-8 h-8 rounded-lg bg-[#EBF5FB] flex items-center justify-center shrink-0 mt-0.5">
+                  <b.icon size={15} className="text-[#1B4F72]" strokeWidth={1.75} />
                 </div>
-                <div>
-                  <div className="text-sm font-semibold text-slate-800">
-                    {t.name}
-                  </div>
-                  <div className="text-xs text-slate-500">{t.role}</div>
-                </div>
+                <span className="text-sm text-slate-700 leading-snug">{b.text}</span>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          <Link
+            href="/register"
+            className="inline-flex items-center gap-2 bg-[#1B4F72] hover:bg-[#154360] text-white font-semibold px-6 py-3.5 rounded-xl transition-colors text-sm cursor-pointer"
+          >
+            Kostenlos starten <ArrowRight size={15} />
+          </Link>
+          <p className="text-xs text-slate-400 mt-3">
+            Keine Kreditkarte erforderlich · Free-Plan verfügbar
+          </p>
         </div>
       </div>
     </section>

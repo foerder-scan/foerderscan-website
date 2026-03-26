@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { User, Mail, Calendar, CreditCard, Zap, CheckCircle2, ArrowUpRight } from "lucide-react";
+import { User, Mail, Calendar, CheckCircle2, Zap } from "lucide-react";
+import { StripePortalButton, UpgradePanel, AccountActions } from "./ProfilActions";
 
 const TIER_INFO: Record<string, {
   label: string;
@@ -40,24 +41,9 @@ const TIER_INFO: Record<string, {
 };
 
 const UPGRADE_OPTIONS = [
-  {
-    tier: "STARTER",
-    label: "Starter",
-    price: "49 €/Monat",
-    highlight: false,
-  },
-  {
-    tier: "PROFESSIONAL",
-    label: "Professional",
-    price: "149 €/Monat",
-    highlight: true,
-  },
-  {
-    tier: "ENTERPRISE",
-    label: "Enterprise",
-    price: "Auf Anfrage",
-    highlight: false,
-  },
+  { tier: "STARTER",      label: "Starter",      price: "49 €/Monat",   highlight: false },
+  { tier: "PROFESSIONAL", label: "Professional", price: "149 €/Monat",  highlight: true  },
+  { tier: "ENTERPRISE",   label: "Enterprise",   price: "Auf Anfrage",  highlight: false },
 ];
 
 export default async function ProfilPage() {
@@ -69,7 +55,6 @@ export default async function ProfilPage() {
     where: { id: userId },
     include: { subscription: true },
   });
-
   if (!user) return null;
 
   const tier = user.subscription?.tier ?? "FREE";
@@ -85,7 +70,6 @@ export default async function ProfilPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-xl font-extrabold text-slate-900">Profil & Abo</h1>
         <p className="text-sm text-slate-500 mt-0.5">Konto- und Aboverwaltung</p>
@@ -125,7 +109,9 @@ export default async function ProfilPage() {
                     <Calendar size={11} /> Mitglied seit
                   </label>
                   <div className="text-sm text-slate-600 border border-slate-200 rounded-xl px-3 py-2.5 bg-slate-50">
-                    {new Date(user.createdAt).toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" })}
+                    {new Date(user.createdAt).toLocaleDateString("de-DE", {
+                      day: "2-digit", month: "long", year: "numeric",
+                    })}
                   </div>
                 </div>
               </div>
@@ -163,7 +149,6 @@ export default async function ProfilPage() {
                 <div className="text-xs text-slate-500 mt-2">Aktueller Plan</div>
               </div>
             </div>
-
             <div className="mt-4 border border-slate-100 rounded-xl p-4">
               <div className="text-xs font-semibold text-slate-600 mb-2">Enthaltene Funktionen</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -196,60 +181,17 @@ export default async function ProfilPage() {
                     </span>
                   </div>
                 )}
-                <button className="w-full mt-2 flex items-center justify-center gap-2 border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-semibold py-2.5 rounded-xl transition-colors cursor-pointer">
-                  <CreditCard size={14} /> Zahlungsmethode verwalten
-                </button>
+                <StripePortalButton />
               </div>
             </div>
           )}
         </div>
 
-        {/* Right: Upgrade */}
-        {tier === "FREE" || tier === "STARTER" ? (
-          <div className="space-y-4">
-            <div className="bg-gradient-to-br from-[#1B4F72] to-[#2E86C1] rounded-2xl p-5 text-white">
-              <div className="flex items-center gap-2 mb-3">
-                <Zap size={16} className="text-amber-300" />
-                <span className="text-xs font-bold uppercase tracking-widest text-blue-200">Upgrade</span>
-              </div>
-              <h3 className="text-base font-extrabold mb-1">Mehr Leistung</h3>
-              <p className="text-xs text-blue-200 leading-relaxed mb-4">
-                Schalten Sie KI-Matching, unbegrenzte Projekte und den vollständigen Datenbankzugriff frei.
-              </p>
-              <div className="space-y-2">
-                {UPGRADE_OPTIONS.filter((o) => o.tier !== tier).map((opt) => (
-                  <div
-                    key={opt.tier}
-                    className={`rounded-xl p-3 border cursor-pointer transition-all ${
-                      opt.highlight
-                        ? "bg-white/15 border-white/30"
-                        : "bg-white/8 border-white/15 hover:bg-white/12"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-bold">{opt.label}</div>
-                        <div className="text-xs text-blue-200">{opt.price}</div>
-                      </div>
-                      <ArrowUpRight size={14} className="text-blue-300" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-5">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Sicherheit</h3>
-              <button className="w-full text-left text-sm text-slate-700 hover:text-slate-900 font-medium py-2 border-b border-slate-100 transition-colors cursor-pointer">
-                Passwort ändern
-              </button>
-              <button className="w-full text-left text-sm text-red-500 hover:text-red-700 font-medium py-2 transition-colors cursor-pointer">
-                Konto löschen
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
+        {/* Right */}
+        <div className="space-y-4">
+          {(tier === "FREE" || tier === "STARTER") ? (
+            <UpgradePanel currentTier={tier} options={UPGRADE_OPTIONS} />
+          ) : (
             <div className={`rounded-2xl border p-5 ${tierInfo.border} ${tierInfo.bg}`}>
               <div className="flex items-center gap-2 mb-2">
                 <Zap size={16} className={tierInfo.color} />
@@ -259,17 +201,9 @@ export default async function ProfilPage() {
                 Sie nutzen den vollen Funktionsumfang von FörderScan.
               </p>
             </div>
-            <div className="bg-white rounded-2xl border border-slate-200 p-5">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Sicherheit</h3>
-              <button className="w-full text-left text-sm text-slate-700 hover:text-slate-900 font-medium py-2 border-b border-slate-100 transition-colors cursor-pointer">
-                Passwort ändern
-              </button>
-              <button className="w-full text-left text-sm text-red-500 hover:text-red-700 font-medium py-2 transition-colors cursor-pointer">
-                Konto löschen
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+          <AccountActions />
+        </div>
       </div>
     </div>
   );

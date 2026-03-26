@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { UserRole } from "@prisma/client";
+import { sendVerificationEmail } from "@/lib/email";
+import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
   const { name, email, password, company, role } = await req.json();
@@ -31,6 +33,14 @@ export async function POST(req: NextRequest) {
       subscription: { create: { tier: "FREE", status: "active" } },
     },
   });
+
+  // E-Mail-Verifikation
+  const token = crypto.randomBytes(32).toString("hex");
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+  await prisma.verificationToken.create({
+    data: { identifier: email, token, expires },
+  });
+  await sendVerificationEmail(email, token, name).catch(() => {});
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }

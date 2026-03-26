@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import {
   Zap,
   LayoutDashboard,
@@ -12,6 +12,7 @@ import {
   LogOut,
   Bell,
   Database,
+  ShieldCheck,
 } from "lucide-react";
 
 const navItems = [
@@ -24,6 +25,11 @@ const navItems = [
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const isAdmin = session?.user && (
+    (session.user as { role?: string }).role === "SUPER_ADMIN" ||
+    (session.user as { role?: string }).role === "REDAKTEUR"
+  );
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href);
@@ -66,6 +72,26 @@ export default function DashboardSidebar() {
             </Link>
           );
         })}
+
+        {isAdmin && (
+          <>
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest px-3 pb-2 pt-4">
+              Admin
+            </p>
+            <Link
+              href="/dashboard/admin/programme"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                isActive("/dashboard/admin")
+                  ? "bg-amber-50 text-amber-800"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+              }`}
+            >
+              <ShieldCheck size={17} strokeWidth={isActive("/dashboard/admin") ? 2.5 : 1.75}
+                className={isActive("/dashboard/admin") ? "text-amber-700" : "text-slate-400"} />
+              Förderprogramme
+            </Link>
+          </>
+        )}
       </nav>
 
       {/* Footer */}

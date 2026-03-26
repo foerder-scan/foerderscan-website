@@ -5,6 +5,14 @@ export default auth((req) => {
   const { nextUrl, auth: session } = req;
   const isLoggedIn = !!session;
   const isDashboard = nextUrl.pathname.startsWith("/dashboard");
+  const isWartung = nextUrl.pathname === "/wartung";
+  const isApi = nextUrl.pathname.startsWith("/api");
+
+  // Wartungsmodus: alle öffentlichen Seiten → /wartung
+  const maintenance = process.env.MAINTENANCE_MODE === "true";
+  if (maintenance && !isDashboard && !isApi && !isWartung) {
+    return NextResponse.redirect(new URL("/wartung", nextUrl.origin));
+  }
 
   if (isDashboard && !isLoggedIn) {
     const loginUrl = new URL("/login", nextUrl.origin);
@@ -20,5 +28,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/register"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

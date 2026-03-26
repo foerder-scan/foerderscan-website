@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { CheckCircle2, Minus, ArrowRight } from "lucide-react";
+import PricingButton from "@/components/pricing/PricingButton";
 
 const tiers = [
   {
     name: "Free",
+    stripeTier: "FREE" as const,
     price: "0",
     period: "",
     desc: "Zum Kennenlernen der Plattform",
     cta: "Kostenlos starten",
-    ctaHref: "/ueber-uns#kontakt",
     highlight: false,
     features: [
       { label: "Fördersuchen / Monat", value: "5" },
@@ -25,11 +26,11 @@ const tiers = [
   },
   {
     name: "Starter",
+    stripeTier: "STARTER" as const,
     price: "29",
     period: "/ Monat",
     desc: "Für Einsteiger und Gelegenheitsnutzer",
     cta: "Starter wählen",
-    ctaHref: "/ueber-uns#kontakt",
     highlight: false,
     features: [
       { label: "Fördersuchen / Monat", value: "50" },
@@ -46,11 +47,11 @@ const tiers = [
   },
   {
     name: "Professional",
+    stripeTier: "PROFESSIONAL" as const,
     price: "79",
     period: "/ Monat",
     desc: "Für aktive Energieberater – der Haupttarif",
     cta: "Professional wählen",
-    ctaHref: "/ueber-uns#kontakt",
     highlight: true,
     badge: "Beliebteste Wahl",
     features: [
@@ -68,11 +69,11 @@ const tiers = [
   },
   {
     name: "Enterprise",
+    stripeTier: "ENTERPRISE" as const,
     price: "Individuell",
     period: "",
     desc: "Für Planungsbüros & Wohnungsbaugesellschaften",
     cta: "Kontakt aufnehmen",
-    ctaHref: "/ueber-uns#kontakt",
     highlight: false,
     features: [
       { label: "Fördersuchen / Monat", value: "Unbegrenzt" },
@@ -190,16 +191,11 @@ export default function PreisePage() {
                   ))}
                 </ul>
 
-                <Link
-                  href={tier.ctaHref}
-                  className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl font-semibold text-sm transition-colors cursor-pointer ${
-                    tier.highlight
-                      ? "bg-[#1B4F72] text-white hover:bg-[#154360]"
-                      : "bg-[#F8FAFC] text-[#1B4F72] border border-[#AED6F1] hover:bg-[#EBF5FB]"
-                  }`}
-                >
-                  {tier.cta} <ArrowRight size={14} />
-                </Link>
+                <PricingButton
+                  tier={tier.stripeTier}
+                  label={tier.cta}
+                  highlight={tier.highlight}
+                />
               </div>
             ))}
           </div>
