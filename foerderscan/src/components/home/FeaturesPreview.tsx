@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   BrainCircuit,
@@ -8,6 +10,7 @@ import {
   ShieldCheck,
   ArrowRight,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const beraterFeatures = [
   {
@@ -67,11 +70,22 @@ function FeatureCard({
   );
 }
 
+const cardVariants = {
+  hidden: { opacity: 0, y: 28 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55 } },
+};
+
 export default function FeaturesPreview() {
   return (
     <section className="py-20 lg:py-28 bg-white">
       <div className="section-container">
-        <div className="text-center mb-14">
+        <motion.div
+          className="text-center mb-14"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EBF5FB] text-[#1B4F72] text-xs font-semibold mb-4 border border-[#AED6F1]">
             Features
           </div>
@@ -82,11 +96,20 @@ export default function FeaturesPreview() {
             FörderScan unterscheidet klar zwischen den Bedürfnissen
             professioneller Energieberater und privater Eigentümer.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <motion.div
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.15 }}
+          variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
+        >
           {/* Energieberater card */}
-          <div className="rounded-2xl border border-slate-200 overflow-hidden">
+          <motion.div
+            className="rounded-2xl border border-slate-200 overflow-hidden"
+            variants={cardVariants}
+          >
             <div className="bg-gradient-to-br from-[#1B4F72] to-[#2E86C1] px-6 py-5">
               <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/10 text-white text-xs font-semibold mb-3 border border-white/20">
                 Für Energieberater (B2B)
@@ -111,10 +134,13 @@ export default function FeaturesPreview() {
                 Alle Features ansehen <ArrowRight size={14} />
               </Link>
             </div>
-          </div>
+          </motion.div>
 
           {/* Endkunden card */}
-          <div className="rounded-2xl border border-slate-200 overflow-hidden">
+          <motion.div
+            className="rounded-2xl border border-slate-200 overflow-hidden"
+            variants={cardVariants}
+          >
             <div className="bg-gradient-to-br from-[#1E8449] to-[#27AE60] px-6 py-5">
               <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/10 text-white text-xs font-semibold mb-3 border border-white/20">
                 Für Eigentümer (B2C)
@@ -157,8 +183,8 @@ export default function FeaturesPreview() {
                 Alle Features ansehen <ArrowRight size={14} />
               </Link>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );

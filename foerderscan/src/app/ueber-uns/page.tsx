@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Mail, Send, CheckCircle2, Zap, Target, Users, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const values = [
   {
@@ -56,7 +57,12 @@ export default function UeberUnsPage() {
     <div className="pt-16">
       {/* Hero */}
       <section className="py-16 lg:py-24 bg-[#F8FAFC] border-b border-slate-100">
-        <div className="section-container max-w-4xl mx-auto text-center">
+        <motion.div
+          className="section-container max-w-4xl mx-auto text-center"
+          initial={{ opacity: 0, y: 28 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EBF5FB] text-[#1B4F72] text-xs font-semibold mb-6 border border-[#AED6F1]">
             Über FörderScan
           </div>
@@ -76,12 +82,18 @@ export default function UeberUnsPage() {
             komplex und ändert sich ständig. FörderScan bündelt alles auf einer
             Plattform – intelligent, aktuell, verlässlich.
           </p>
-        </div>
+        </motion.div>
       </section>
 
       {/* Mission */}
       <section className="py-16 lg:py-20 bg-white">
-        <div className="section-container">
+        <motion.div
+          className="section-container"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
+        >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-2xl font-extrabold text-slate-900 mb-4">
@@ -121,12 +133,18 @@ export default function UeberUnsPage() {
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Gründer */}
       <section className="py-16 lg:py-20 bg-[#F8FAFC] border-t border-slate-100">
-        <div className="section-container">
+        <motion.div
+          className="section-container"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
+        >
           <div className="text-center mb-12">
             <h2 className="text-2xl font-extrabold text-slate-900 mb-3">Der Gründer</h2>
             <p className="text-base text-slate-500 max-w-lg mx-auto">
@@ -147,7 +165,7 @@ export default function UeberUnsPage() {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Contact */}

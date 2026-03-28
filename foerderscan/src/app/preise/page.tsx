@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { CheckCircle2, Minus, ArrowRight } from "lucide-react";
 import PricingButton from "@/components/pricing/PricingButton";
+import { motion } from "framer-motion";
 
 const tiers = [
   {
@@ -126,7 +129,12 @@ export default function PreisePage() {
     <div className="pt-16">
       {/* Hero */}
       <section className="py-16 lg:py-24 bg-[#F8FAFC] border-b border-slate-100">
-        <div className="section-container text-center">
+        <motion.div
+          className="section-container text-center"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EBF5FB] text-[#1B4F72] text-xs font-semibold mb-6 border border-[#AED6F1]">
             Transparente Preise
           </div>
@@ -137,21 +145,31 @@ export default function PreisePage() {
             Starten Sie kostenlos und skalieren Sie mit Ihrem Wachstum.
             Alle Pläne inkl. Mehrwertsteuer. Monatlich kündbar.
           </p>
-        </div>
+        </motion.div>
       </section>
 
       {/* Pricing cards */}
       <section className="py-16 lg:py-20 bg-white">
         <div className="section-container">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+            variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+          >
             {tiers.map((tier) => (
-              <div
+              <motion.div
                 key={tier.name}
                 className={`relative rounded-2xl border p-6 flex flex-col ${
                   tier.highlight
                     ? "border-[#1B4F72] shadow-[0_0_0_2px_#1B4F72] bg-white"
                     : "border-slate-200 bg-white hover:shadow-md transition-shadow"
                 }`}
+                variants={{
+                  hidden: { opacity: 0, y: 28 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+                }}
               >
                 {tier.badge && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#1B4F72] text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
@@ -196,26 +214,45 @@ export default function PreisePage() {
                   label={tier.cta}
                   highlight={tier.highlight}
                 />
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* FAQ */}
       <section className="py-16 lg:py-24 bg-[#F8FAFC] border-t border-slate-100">
         <div className="section-container max-w-3xl mx-auto">
-          <h2 className="text-2xl font-extrabold text-slate-900 text-center mb-10">
+          <motion.h2
+            className="text-2xl font-extrabold text-slate-900 text-center mb-10"
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
             Häufige Fragen
-          </h2>
-          <div className="space-y-4">
+          </motion.h2>
+          <motion.div
+            className="space-y-4"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+            variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+          >
             {faqs.map((faq, i) => (
-              <div key={i} className="bg-white rounded-xl border border-slate-200 p-5">
+              <motion.div
+                key={i}
+                className="bg-white rounded-xl border border-slate-200 p-5"
+                variants={{
+                  hidden: { opacity: 0, y: 12 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+                }}
+              >
                 <h3 className="text-sm font-bold text-slate-900 mb-2">{faq.q}</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">{faq.a}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
           <div className="text-center mt-10">
             <p className="text-sm text-slate-500 mb-3">
               Weitere Fragen? Wir helfen gerne.

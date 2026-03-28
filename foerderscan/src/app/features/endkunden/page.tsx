@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Search,
@@ -9,6 +11,7 @@ import {
   CheckCircle2,
   CircleDot,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const features = [
   {
@@ -76,7 +79,12 @@ export default function EndkundenFeaturesPage() {
       {/* Hero */}
       <section className="py-16 lg:py-24 bg-gradient-to-br from-[#155d33] to-[#27AE60] text-white">
         <div className="section-container">
-          <div className="max-w-3xl">
+          <motion.div
+            className="max-w-3xl"
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-green-100 text-xs font-semibold mb-6 border border-white/20">
               Für Eigentümer (B2C)
             </div>
@@ -95,16 +103,29 @@ export default function EndkundenFeaturesPage() {
             >
               Jetzt kostenlos prüfen <ArrowRight size={15} />
             </Link>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* How it works mini */}
       <section className="py-12 bg-white border-b border-slate-100">
         <div className="section-container">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-0">
+          <motion.div
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-0"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.4 }}
+            variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+          >
             {steps.map((step, i) => (
-              <div key={i} className="flex items-center gap-4">
+              <motion.div
+                key={i}
+                className="flex items-center gap-4"
+                variants={{
+                  hidden: { opacity: 0, y: 12 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+                }}
+              >
                 <div className="text-center min-w-[140px]">
                   <div className="w-8 h-8 rounded-full bg-[#EAFAF1] border-2 border-[#27AE60] text-[#1E8449] text-sm font-bold flex items-center justify-center mx-auto mb-2">
                     {i + 1}
@@ -118,16 +139,22 @@ export default function EndkundenFeaturesPage() {
                     className="text-slate-300 shrink-0 hidden sm:block mx-2"
                   />
                 )}
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Features */}
       <section className="py-20 lg:py-28 bg-[#F8FAFC]">
         <div className="section-container">
-          <div className="text-center mb-14">
+          <motion.div
+            className="text-center mb-14"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
               Was FörderScan für Sie tut
             </h2>
@@ -135,12 +162,22 @@ export default function EndkundenFeaturesPage() {
               Keine komplizierten Formulare. Keine Fachbegriffe, die Sie erst
               googeln müssen. Nur klare Ergebnisse.
             </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          </motion.div>
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+            variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+          >
             {features.map((f, i) => (
-              <div
+              <motion.div
                 key={i}
                 className="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-md transition-shadow"
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.45 } },
+                }}
               >
                 <div className="w-10 h-10 rounded-xl bg-[#EAFAF1] flex items-center justify-center mb-4">
                   <f.icon size={20} className="text-[#1E8449]" strokeWidth={1.75} />
@@ -159,20 +196,26 @@ export default function EndkundenFeaturesPage() {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* CTA */}
       <section className="py-16 bg-white border-t border-slate-100">
-        <div className="section-container text-center">
+        <motion.div
+          className="section-container text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
           <h2 className="text-2xl font-extrabold text-slate-900 mb-4">
             Finden Sie jetzt Ihre Förderung
           </h2>
           <p className="text-base text-slate-500 mb-8 max-w-md mx-auto">
-            Kostenloser Schnellcheck – kein Anmeldung, keine Kreditkarte.
+            Kostenloser Schnellcheck – keine Anmeldung, keine Kreditkarte.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
@@ -188,7 +231,7 @@ export default function EndkundenFeaturesPage() {
               Sind Sie Energieberater? →
             </Link>
           </div>
-        </div>
+        </motion.div>
       </section>
     </div>
   );

@@ -115,7 +115,7 @@ export default function Navbar() {
           {/* Desktop CTAs */}
           <div className="hidden md:flex items-center gap-3">
             <Link
-              href="/ueber-uns#kontakt"
+              href="/login"
               className="text-sm font-medium text-slate-600 hover:text-[#1B4F72] transition-colors px-3 py-2"
             >
               Anmelden

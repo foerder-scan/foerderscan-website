@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const points = [
   "Keine Kreditkarte erforderlich",
@@ -11,7 +14,13 @@ export default function CTASection() {
   return (
     <section className="py-20 lg:py-28 bg-white">
       <div className="section-container">
-        <div className="bg-gradient-to-br from-[#1B4F72] via-[#1B4F72] to-[#154360] rounded-3xl px-8 py-14 text-center relative overflow-hidden">
+        <motion.div
+          className="bg-gradient-to-br from-[#1B4F72] via-[#1B4F72] to-[#154360] rounded-3xl px-8 py-14 text-center relative overflow-hidden"
+          initial={{ opacity: 0, y: 32 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           {/* Background decoration */}
           <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-60 h-60 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/3 pointer-events-none" />
@@ -52,7 +61,7 @@ export default function CTASection() {
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

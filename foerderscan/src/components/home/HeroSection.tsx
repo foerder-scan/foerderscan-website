@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, TrendingUp } from "lucide-react";
+import { motion } from "framer-motion";
 
 const GEBAEUDETYP_OPTIONS = [
   { value: "efh", label: "Einfamilienhaus" },
@@ -67,7 +68,11 @@ export default function HeroSection() {
       <div className="section-container">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left: copy */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, x: -24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.55, ease: "easeOut" }}
+          >
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EBF5FB] text-[#1B4F72] text-xs font-semibold mb-6 border border-[#AED6F1]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#2E86C1]" />
               Jetzt in der Beta – kostenlos starten
@@ -126,10 +131,15 @@ export default function HeroSection() {
                 Demo buchen
               </Link>
             </div>
-          </div>
+          </motion.div>
 
           {/* Right: interactive Förderrechner */}
-          <div className="relative">
+          <motion.div
+            className="relative"
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.55, delay: 0.1, ease: "easeOut" }}
+          >
             <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_8px_40px_-12px_rgba(27,79,114,0.18)] p-6">
               {/* Header */}
               <div className="flex items-center gap-3 mb-6 pb-5 border-b border-slate-100">
@@ -275,7 +285,7 @@ export default function HeroSection() {
             <div className="absolute -top-3 -right-3 bg-[#27AE60] text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
               Live-Berechnung
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

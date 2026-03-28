@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   BrainCircuit,
@@ -11,6 +13,7 @@ import {
   ArrowRight,
   CheckCircle2,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const mainFeatures = [
   {
@@ -101,7 +104,12 @@ export default function EnergieberaterFeaturesPage() {
       {/* Hero */}
       <section className="py-16 lg:py-24 bg-gradient-to-br from-[#0D2B3E] to-[#1B4F72] text-white">
         <div className="section-container">
-          <div className="max-w-3xl">
+          <motion.div
+            className="max-w-3xl"
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-blue-200 text-xs font-semibold mb-6 border border-white/20">
               Für Energieberater (B2B)
             </div>
@@ -127,14 +135,20 @@ export default function EnergieberaterFeaturesPage() {
                 Demo buchen
               </Link>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Features grid */}
       <section className="py-20 lg:py-28 bg-white">
         <div className="section-container">
-          <div className="text-center mb-14">
+          <motion.div
+            className="text-center mb-14"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
               Alle Features im Überblick
             </h2>
@@ -142,13 +156,23 @@ export default function EnergieberaterFeaturesPage() {
               Entwickelt für den professionellen Einsatz – von der ersten
               Projektanlage bis zum fertigen Förderbericht.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+            variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+          >
             {mainFeatures.map((f, i) => (
-              <div
+              <motion.div
                 key={i}
                 className="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-md transition-shadow"
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.45 } },
+                }}
               >
                 <div className="flex items-start gap-4 mb-4">
                   <div className="w-10 h-10 rounded-xl bg-[#EBF5FB] flex items-center justify-center shrink-0">
@@ -171,15 +195,21 @@ export default function EnergieberaterFeaturesPage() {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* CTA */}
       <section className="py-16 bg-[#F8FAFC] border-t border-slate-100">
-        <div className="section-container text-center">
+        <motion.div
+          className="section-container text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
           <h2 className="text-2xl font-extrabold text-slate-900 mb-4">
             Bereit, Ihren Workflow zu optimieren?
           </h2>
@@ -201,7 +231,7 @@ export default function EnergieberaterFeaturesPage() {
               Preise vergleichen →
             </Link>
           </div>
-        </div>
+        </motion.div>
       </section>
     </div>
   );

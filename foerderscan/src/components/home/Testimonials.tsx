@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Zap, Clock, ShieldCheck } from "lucide-react";
+import { motion } from "framer-motion";
 
 const benefits = [
   {
@@ -20,7 +23,13 @@ export default function Testimonials() {
   return (
     <section className="py-20 lg:py-28 bg-[#F8FAFC]">
       <div className="section-container">
-        <div className="max-w-3xl mx-auto text-center">
+        <motion.div
+          className="max-w-3xl mx-auto text-center"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EBF5FB] text-[#1B4F72] text-xs font-semibold mb-6 border border-[#AED6F1]">
             Jetzt in der Beta
           </div>
@@ -33,19 +42,29 @@ export default function Testimonials() {
             die Roadmap.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+          >
             {benefits.map((b, i) => (
-              <div
+              <motion.div
                 key={i}
                 className="bg-white rounded-xl border border-slate-200 px-5 py-4 flex items-start gap-3 text-left"
+                variants={{
+                  hidden: { opacity: 0, y: 16 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.45 } },
+                }}
               >
                 <div className="w-8 h-8 rounded-lg bg-[#EBF5FB] flex items-center justify-center shrink-0 mt-0.5">
                   <b.icon size={15} className="text-[#1B4F72]" strokeWidth={1.75} />
                 </div>
                 <span className="text-sm text-slate-700 leading-snug">{b.text}</span>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
 
           <Link
             href="/register"
@@ -56,7 +75,7 @@ export default function Testimonials() {
           <p className="text-xs text-slate-400 mt-3">
             Keine Kreditkarte erforderlich · Free-Plan verfügbar
           </p>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
