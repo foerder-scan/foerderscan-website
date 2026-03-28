@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { getStripe } from "@/lib/stripe";
 import {
   Users,
   Activity,
@@ -9,6 +10,8 @@ import {
   Key,
   Webhook,
   FileText,
+  CreditCard,
+  Euro,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -87,6 +90,41 @@ async function getStats() {
   };
 }
 
+async function getStripeStats() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key || key.startsWith("sk_placeholder") || key === "") {
+    return null;
+  }
+  try {
+    const stripe = getStripe();
+    const [subs, charges] = await Promise.all([
+      stripe.subscriptions.list({ status: "active", limit: 100, expand: ["data.items.data.price"] }),
+      stripe.charges.list({ limit: 100, created: { gte: Math.floor(Date.now() / 1000) - 30 * 86400 } }),
+    ]);
+
+    const mrr = subs.data.reduce((sum, sub) => {
+      const item = sub.items.data[0];
+      if (!item?.price) return sum;
+      const amount = item.price.unit_amount ?? 0;
+      const interval = item.price.recurring?.interval;
+      const monthly = interval === "year" ? amount / 12 : amount;
+      return sum + monthly;
+    }, 0);
+
+    const revenue30d = charges.data
+      .filter((c) => c.status === "succeeded")
+      .reduce((sum, c) => sum + c.amount, 0);
+
+    return {
+      activeSubscriptions: subs.data.length,
+      mrr: mrr / 100,
+      revenue30d: revenue30d / 100,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default async function CmdDashboard() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
@@ -98,7 +136,7 @@ export default async function CmdDashboard() {
   });
   if (user?.role !== "SUPER_ADMIN") redirect("/dashboard");
 
-  const stats = await getStats();
+  const [stats, stripeStats] = await Promise.all([getStats(), getStripeStats()]);
 
   const TIER_LABELS: Record<string, string> = {
     FREE: "Free",
@@ -157,6 +195,28 @@ export default async function CmdDashboard() {
           </div>
         ))}
       </div>
+
+      {/* Stripe Revenue */}
+      {stripeStats ? (
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { label: "MRR", value: `${stripeStats.mrr.toLocaleString("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 })}`, icon: Euro, color: "text-emerald-600" },
+            { label: "Aktive Abos", value: stripeStats.activeSubscriptions, icon: CreditCard, color: "text-[#1B4F72]" },
+            { label: "Umsatz 30d", value: `${stripeStats.revenue30d.toLocaleString("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 })}`, icon: TrendingUp, color: "text-violet-600" },
+          ].map(({ label, value, icon: Icon, color }) => (
+            <div key={label} className="bg-emerald-50 rounded-xl border border-emerald-100 p-4 flex flex-col gap-2">
+              <Icon size={16} className={color} />
+              <div className="text-2xl font-bold text-slate-900">{value}</div>
+              <div className="text-xs text-slate-500">{label}</div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-slate-50 rounded-xl border border-slate-200 px-5 py-3 text-xs text-slate-400 flex items-center gap-2">
+          <CreditCard size={13} />
+          Stripe-Reporting nicht verfügbar – STRIPE_SECRET_KEY nicht gesetzt.
+        </div>
+      )}
 
       {/* Tier distribution */}
       <div className="bg-white rounded-xl border border-slate-200 p-6">

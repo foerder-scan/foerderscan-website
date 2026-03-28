@@ -18,17 +18,39 @@ const SEGMENTE = [
   { value: "BEG_EM", label: "BEG Einzelmaßnahmen" },
   { value: "BEG_KFN", label: "BEG KfW Kredit" },
   { value: "EBW", label: "Energieberatung" },
+  { value: "LANDESFOERDERUNG", label: "Landesförderung" },
   { value: "STEUERLICH", label: "Steuerlich" },
   { value: "SONSTIGE", label: "Sonstige" },
+];
+
+const BUNDESLAENDER = [
+  { value: "alle", label: "Alle Bundesländer" },
+  { value: "BW", label: "Baden-Württemberg" },
+  { value: "BY", label: "Bayern" },
+  { value: "BE", label: "Berlin" },
+  { value: "BB", label: "Brandenburg" },
+  { value: "HB", label: "Bremen" },
+  { value: "HH", label: "Hamburg" },
+  { value: "HE", label: "Hessen" },
+  { value: "MV", label: "Mecklenburg-Vorpommern" },
+  { value: "NI", label: "Niedersachsen" },
+  { value: "NW", label: "Nordrhein-Westfalen" },
+  { value: "RP", label: "Rheinland-Pfalz" },
+  { value: "SL", label: "Saarland" },
+  { value: "SN", label: "Sachsen" },
+  { value: "ST", label: "Sachsen-Anhalt" },
+  { value: "SH", label: "Schleswig-Holstein" },
+  { value: "TH", label: "Thüringen" },
 ];
 
 interface Props {
   initialFoerdergeber: string;
   initialSegment: string;
   initialSearch: string;
+  initialBundesland: string;
 }
 
-export default function DatenbankFilter({ initialFoerdergeber, initialSegment, initialSearch }: Props) {
+export default function DatenbankFilter({ initialFoerdergeber, initialSegment, initialSearch, initialBundesland }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const [, startTransition] = useTransition();
@@ -36,19 +58,24 @@ export default function DatenbankFilter({ initialFoerdergeber, initialSegment, i
   const [foerdergeber, setFoerdergeber] = useState(initialFoerdergeber);
   const [segment, setSegment] = useState(initialSegment);
   const [search, setSearch] = useState(initialSearch);
+  const [bundesland, setBundesland] = useState(initialBundesland);
 
-  const applyFilter = (newFg?: string, newSeg?: string, newQ?: string) => {
+  const applyFilter = (newFg?: string, newSeg?: string, newQ?: string, newBl?: string) => {
     const fg = newFg ?? foerdergeber;
     const seg = newSeg ?? segment;
     const q = newQ ?? search;
+    const bl = newBl ?? bundesland;
     const params = new URLSearchParams();
     if (fg !== "alle") params.set("foerdergeber", fg);
     if (seg !== "alle") params.set("segment", seg);
     if (q) params.set("q", q);
+    if (bl !== "alle") params.set("bundesland", bl);
     startTransition(() => {
       router.push(`${pathname}?${params.toString()}`);
     });
   };
+
+  const showBundesland = foerdergeber === "LAND" || segment === "LANDESFOERDERUNG";
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-4">
@@ -97,6 +124,22 @@ export default function DatenbankFilter({ initialFoerdergeber, initialSegment, i
             <option key={s.value} value={s.value}>{s.label}</option>
           ))}
         </select>
+
+        {/* Bundesland — nur sichtbar bei LAND/Landesförderung */}
+        {showBundesland && (
+          <select
+            value={bundesland}
+            onChange={(e) => {
+              setBundesland(e.target.value);
+              applyFilter(undefined, undefined, undefined, e.target.value);
+            }}
+            className="text-sm border border-emerald-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 transition-colors bg-emerald-50 cursor-pointer text-emerald-800"
+          >
+            {BUNDESLAENDER.map((bl) => (
+              <option key={bl.value} value={bl.value}>{bl.label}</option>
+            ))}
+          </select>
+        )}
       </div>
     </div>
   );

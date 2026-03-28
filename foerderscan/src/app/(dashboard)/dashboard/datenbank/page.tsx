@@ -13,7 +13,9 @@ import DatenbankFilter from "./DatenbankFilter";
 const VALID_FOERDERGEBER = new Set(Object.values(Foerdergeber));
 const VALID_SEGMENT = new Set(Object.values(Foerdersegment));
 
-async function getProgramme(foerdergeber?: string, segment?: string, search?: string) {
+const VALID_BUNDESLAENDER = new Set(["BW","BY","BE","BB","HB","HH","HE","MV","NI","NW","RP","SL","SN","ST","SH","TH"]);
+
+async function getProgramme(foerdergeber?: string, segment?: string, search?: string, bundesland?: string) {
   return prisma.foerderProgramm.findMany({
     where: {
       ...(foerdergeber && VALID_FOERDERGEBER.has(foerdergeber as Foerdergeber)
@@ -21,6 +23,9 @@ async function getProgramme(foerdergeber?: string, segment?: string, search?: st
         : {}),
       ...(segment && VALID_SEGMENT.has(segment as Foerdersegment)
         ? { foerdersegment: segment as Foerdersegment }
+        : {}),
+      ...(bundesland && VALID_BUNDESLAENDER.has(bundesland)
+        ? { bundesland }
         : {}),
       ...(search ? {
         OR: [
@@ -69,10 +74,10 @@ const ART_LABEL: Record<string, string> = {
 export default async function DatenbankPage({
   searchParams,
 }: {
-  searchParams: Promise<{ foerdergeber?: string; segment?: string; q?: string }>;
+  searchParams: Promise<{ foerdergeber?: string; segment?: string; q?: string; bundesland?: string }>;
 }) {
   const params = await searchParams;
-  const programme = await getProgramme(params.foerdergeber, params.segment, params.q);
+  const programme = await getProgramme(params.foerdergeber, params.segment, params.q, params.bundesland);
 
   const aktiv = programme.filter((p) => p.status === "AKTIV").length;
 
@@ -93,6 +98,7 @@ export default async function DatenbankPage({
         initialFoerdergeber={params.foerdergeber ?? "alle"}
         initialSegment={params.segment ?? "alle"}
         initialSearch={params.q ?? ""}
+        initialBundesland={params.bundesland ?? "alle"}
       />
 
       {/* Programme */}
@@ -121,6 +127,11 @@ export default async function DatenbankPage({
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${FOERDERGEBER_BADGE[p.foerdergeber] ?? "bg-slate-100 text-slate-600 border-slate-200"}`}>
                         {p.foerdergeber}
                       </span>
+                      {p.bundesland && (
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+                          {p.bundesland}
+                        </span>
+                      )}
                       {p.kurzname && (
                         <span className="text-xs font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded">
                           {p.kurzname}

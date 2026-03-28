@@ -60,6 +60,7 @@ async function main() {
     beschreibung?: string;
     hinweise?: string;
     quellUrl?: string;
+    bundesland?: string;
     gebaeudetypen: Gebaeudetyp[];
     massnahmen: Massnahmenart[];
     boni?: { bezeichnung: string; kuerzel: string; bonusSatz: number; voraussetzung?: string }[];
@@ -83,7 +84,8 @@ async function main() {
         hinweise: data.hinweise,
         quellUrl: data.quellUrl,
         status: ProgrammStatus.AKTIV,
-        bundesweit: true,
+        bundesweit: !data.bundesland,
+        bundesland: data.bundesland ?? null,
         letzteModifikation: new Date(),
         gebaeudetypen: {
           create: data.gebaeudetypen.map((g) => ({ gebaeudetyp: g })),
@@ -449,6 +451,222 @@ async function main() {
   });
 
   console.log("✅ Demo-Projekte erstellt");
+
+  // ─── Landesförderungen ────────────────────────────────────────────────────
+  console.log("🏛️  Erstelle Landesförderungen...");
+
+  await createProgramm({
+    name: "BayernHeim – Wohnraumförderung Mietwohnungsbau",
+    kurzname: "BayernHeim Mietwohnbau",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.KREDIT,
+    basisFoerdersatz: 0.0,
+    maxFoerdersatz: 0.0,
+    kreditbetragMax: 100000,
+    bundesland: "BY",
+    beschreibung: "Zinsgünstige Darlehen für die Errichtung und Sanierung von Mietwohnraum in Bayern. Fokus auf energieeffizientes Bauen nach BEG-Standard.",
+    hinweise: "Antrag über die BayernHeim GmbH. Kombinierbar mit BEG WG Kredit.",
+    quellUrl: "https://www.bayernheim.de",
+    gebaeudetypen: [Gebaeudetyp.MFH],
+    massnahmen: [Massnahmenart.EH_KOMPLETTSANIERUNG, Massnahmenart.HEIZUNG],
+  });
+
+  await createProgramm({
+    name: "Bayerisches Modernisierungsprogramm (BayModR)",
+    kurzname: "BayModR",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.KREDIT,
+    basisFoerdersatz: 0.0,
+    maxFoerdersatz: 0.0,
+    kreditbetragMax: 50000,
+    bundesland: "BY",
+    beschreibung: "Niedrigverzinsliche Darlehen der LfA Förderbank Bayern für energetische Modernisierung von Wohngebäuden.",
+    hinweise: "Antragstellung über Hausbank. Mindest-Energiestandard KfW 85 erforderlich.",
+    quellUrl: "https://www.lfa.de",
+    gebaeudetypen: [Gebaeudetyp.EFH, Gebaeudetyp.ZFH, Gebaeudetyp.MFH],
+    massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG, Massnahmenart.ANLAGENTECHNIK],
+  });
+
+  await createProgramm({
+    name: "L-Bank Klimaschutzprogramm Baden-Württemberg",
+    kurzname: "L-Bank Klima BW",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.KREDIT,
+    basisFoerdersatz: 0.0,
+    maxFoerdersatz: 0.10,
+    kreditbetragMax: 150000,
+    bundesland: "BW",
+    beschreibung: "Zinsgünstige Darlehen der L-Bank für klimaschützende Maßnahmen an Wohn- und Nichtwohngebäuden in Baden-Württemberg.",
+    hinweise: "Kombinierbar mit BEG. Antrag vor Beginn der Maßnahme stellen.",
+    quellUrl: "https://www.l-bank.de/klimaschutz",
+    gebaeudetypen: [Gebaeudetyp.EFH, Gebaeudetyp.ZFH, Gebaeudetyp.MFH, Gebaeudetyp.NWG],
+    massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG, Massnahmenart.ANLAGENTECHNIK, Massnahmenart.EH_KOMPLETTSANIERUNG],
+    boni: [{ bezeichnung: "Tilgungszuschuss EH 40", kuerzel: "bw_eh40", bonusSatz: 0.10, voraussetzung: "Erreichen KfW-Effizienzhaus 40" }],
+  });
+
+  await createProgramm({
+    name: "NRW.BANK Gebäudemodernisierung",
+    kurzname: "NRW Gebäudemod.",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.KREDIT,
+    basisFoerdersatz: 0.0,
+    maxFoerdersatz: 0.125,
+    kreditbetragMax: 150000,
+    bundesland: "NW",
+    beschreibung: "Günstige Darlehen der NRW.BANK für energetische Sanierung und Modernisierung von Wohngebäuden in Nordrhein-Westfalen.",
+    hinweise: "Antrag über Hausbank. Förderfähig: Sanierungen auf KfW-Standard oder bessere Einzelmaßnahmen.",
+    quellUrl: "https://www.nrwbank.de/gebaeudemodernisierung",
+    gebaeudetypen: [Gebaeudetyp.EFH, Gebaeudetyp.ZFH, Gebaeudetyp.MFH],
+    massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG, Massnahmenart.ANLAGENTECHNIK, Massnahmenart.EH_KOMPLETTSANIERUNG],
+    boni: [{ bezeichnung: "Tilgungszuschuss EH", kuerzel: "nrw_eh", bonusSatz: 0.125, voraussetzung: "Erreichen Effizienzhaus-Standard" }],
+  });
+
+  await createProgramm({
+    name: "Hessisches Wohnraumförderungsprogramm – Klimabonus",
+    kurzname: "HPW Klimabonus HE",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.ZUSCHUSS,
+    basisFoerdersatz: 0.10,
+    maxFoerdersatz: 0.20,
+    maxFoerderfaehigeKosten: 60000,
+    bundesland: "HE",
+    beschreibung: "Zuschüsse des Landes Hessen für energetische Sanierung von selbstgenutztem Wohneigentum. Klimabonus für besonders ambitionierte Maßnahmen.",
+    hinweise: "Antrag bei der WIBank. Einkommensgrenzen beachten.",
+    quellUrl: "https://www.wibank.de",
+    gebaeudetypen: [Gebaeudetyp.EFH, Gebaeudetyp.ZFH],
+    massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG],
+    boni: [{ bezeichnung: "Klimabonus (EH 55 oder besser)", kuerzel: "he_klima", bonusSatz: 0.10, voraussetzung: "Sanierung auf EH 55 oder besser" }],
+  });
+
+  await createProgramm({
+    name: "SAB – Energetisch Sanieren Sachsen",
+    kurzname: "SAB Energiesanierung",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.ZUSCHUSS,
+    basisFoerdersatz: 0.15,
+    maxFoerdersatz: 0.25,
+    maxFoerderfaehigeKosten: 50000,
+    bundesland: "SN",
+    beschreibung: "Zuschüsse der Sächsischen Aufbaubank (SAB) für energetische Sanierungsmaßnahmen an Wohngebäuden in Sachsen.",
+    hinweise: "Kombinierbar mit BEG EM. Maßnahmen müssen von zertifizierten Fachunternehmen ausgeführt werden.",
+    quellUrl: "https://www.sab.de/energetisch-sanieren",
+    gebaeudetypen: [Gebaeudetyp.EFH, Gebaeudetyp.ZFH, Gebaeudetyp.MFH],
+    massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG, Massnahmenart.ANLAGENTECHNIK],
+    boni: [{ bezeichnung: "Bonus Ländlicher Raum", kuerzel: "sn_laendlich", bonusSatz: 0.10, voraussetzung: "Objekt in strukturschwachem ländlichem Raum" }],
+  });
+
+  await createProgramm({
+    name: "ThüringenFörderbank – Energieeffizienz Wohngebäude",
+    kurzname: "TFB Energieeffizienz",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.KREDIT,
+    basisFoerdersatz: 0.0,
+    maxFoerdersatz: 0.0,
+    kreditbetragMax: 80000,
+    bundesland: "TH",
+    beschreibung: "Zinsgünstige Darlehen der ThüringenFörderbank (TFB) für energetische Sanierung und Neubau von Wohngebäuden in Thüringen.",
+    hinweise: "Antrag vor Maßnahmenbeginn. Kombination mit Bundesprogrammen möglich.",
+    quellUrl: "https://www.tfk.de",
+    gebaeudetypen: [Gebaeudetyp.EFH, Gebaeudetyp.ZFH, Gebaeudetyp.MFH],
+    massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG, Massnahmenart.EH_KOMPLETTSANIERUNG],
+  });
+
+  await createProgramm({
+    name: "IBB Klimaschutzprogramm Berlin",
+    kurzname: "IBB Klima Berlin",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.KREDIT,
+    basisFoerdersatz: 0.0,
+    maxFoerdersatz: 0.10,
+    kreditbetragMax: 100000,
+    bundesland: "BE",
+    beschreibung: "Günstige Darlehen der Investitionsbank Berlin (IBB) für Klimaschutzmaßnahmen an Berliner Gebäuden.",
+    hinweise: "Nur für Gebäude im Land Berlin. Antrag über IBB direkt.",
+    quellUrl: "https://www.ibb.de/klimaschutz",
+    gebaeudetypen: [Gebaeudetyp.EFH, Gebaeudetyp.ZFH, Gebaeudetyp.MFH, Gebaeudetyp.NWG],
+    massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG, Massnahmenart.ANLAGENTECHNIK, Massnahmenart.EH_KOMPLETTSANIERUNG],
+    boni: [{ bezeichnung: "Tilgungszuschuss EH 55", kuerzel: "be_eh55", bonusSatz: 0.10, voraussetzung: "Sanierung auf mind. EH 55" }],
+  });
+
+  await createProgramm({
+    name: "IFB Hamburg – Energetisch Sanieren",
+    kurzname: "IFB Sanierung HH",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.KREDIT,
+    basisFoerdersatz: 0.0,
+    maxFoerdersatz: 0.10,
+    kreditbetragMax: 100000,
+    bundesland: "HH",
+    beschreibung: "Günstige Darlehen der IFB Hamburg für energetische Sanierungsmaßnahmen an Hamburger Gebäuden.",
+    hinweise: "Kombinierbar mit BEG-Programmen. Gebäude muss in Hamburg liegen.",
+    quellUrl: "https://www.ifbhh.de/foerderprogramme/energie",
+    gebaeudetypen: [Gebaeudetyp.EFH, Gebaeudetyp.ZFH, Gebaeudetyp.MFH],
+    massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG, Massnahmenart.ANLAGENTECHNIK],
+    boni: [{ bezeichnung: "Tilgungszuschuss EH", kuerzel: "hh_eh", bonusSatz: 0.10, voraussetzung: "Erreichung Effizienzhaus-Standard" }],
+  });
+
+  await createProgramm({
+    name: "ISB Rheinland-Pfalz – Energieeffizienz Wohnen",
+    kurzname: "ISB Energieeffizienz RLP",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.KREDIT,
+    basisFoerdersatz: 0.0,
+    maxFoerdersatz: 0.0,
+    kreditbetragMax: 75000,
+    bundesland: "RP",
+    beschreibung: "Günstige Darlehen der ISB Rheinland-Pfalz für energieeffizientes Sanieren und Bauen.",
+    hinweise: "Einkommensgrenzen für selbstgenutzte Wohnimmobilien. Antrag über Hausbank.",
+    quellUrl: "https://isb.rlp.de",
+    gebaeudetypen: [Gebaeudetyp.EFH, Gebaeudetyp.ZFH, Gebaeudetyp.MFH],
+    massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG, Massnahmenart.EH_KOMPLETTSANIERUNG],
+  });
+
+  await createProgramm({
+    name: "NBank – Energieeffizienz Niedersachsen",
+    kurzname: "NBank Energie NI",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.ZUSCHUSS,
+    basisFoerdersatz: 0.10,
+    maxFoerdersatz: 0.20,
+    maxFoerderfaehigeKosten: 40000,
+    bundesland: "NI",
+    beschreibung: "Zuschüsse der NBank Niedersachsen für energetische Sanierungsmaßnahmen. Besonderer Fokus auf ländliche Gebiete.",
+    hinweise: "Kombination mit BEG EM möglich. Antrag direkt bei der NBank.",
+    quellUrl: "https://www.nbank.de/energie",
+    gebaeudetypen: [Gebaeudetyp.EFH, Gebaeudetyp.ZFH, Gebaeudetyp.MFH],
+    massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG, Massnahmenart.ANLAGENTECHNIK],
+    boni: [{ bezeichnung: "Bonus ländlicher Raum NI", kuerzel: "ni_laendlich", bonusSatz: 0.10, voraussetzung: "Objekt in ländlichem Raum Niedersachsen" }],
+  });
+
+  await createProgramm({
+    name: "ILB Brandenburg – Energetisch Sanieren",
+    kurzname: "ILB Sanierung BB",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.KREDIT,
+    basisFoerdersatz: 0.0,
+    maxFoerdersatz: 0.0,
+    kreditbetragMax: 60000,
+    bundesland: "BB",
+    beschreibung: "Zinsgünstige Darlehen der ILB Brandenburg für energetische Gebäudesanierungen.",
+    hinweise: "Förderfähig: Sanierungen auf KfW-Effizienzhaus-Standard oder qualifizierte Einzelmaßnahmen.",
+    quellUrl: "https://www.ilb.de/energie",
+    gebaeudetypen: [Gebaeudetyp.EFH, Gebaeudetyp.ZFH, Gebaeudetyp.MFH],
+    massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG, Massnahmenart.ANLAGENTECHNIK, Massnahmenart.EH_KOMPLETTSANIERUNG],
+  });
+
+  console.log("✅ Landesförderungen erstellt (12 Programme, 8 Bundesländer)");
   console.log("\n🎉 Seed abgeschlossen!");
   console.log("📧 Admin:   admin@foerderscan.de  /  Admin1234!");
   console.log("📧 Berater: berater@example.de    /  Berater1234!");
