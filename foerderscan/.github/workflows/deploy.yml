@@ -1,0 +1,106 @@
+name: Deploy to OVH VPS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma generate
+
+      - name: Build Next.js
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXTAUTH_URL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MAINTENANCE_MODE: "false"
+          NODE_ENV: production
+        run: npm run build
+
+      - name: Deploy via rsync + SSH
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: |
+          # SSH-Key einrichten
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+          REMOTE="$SSH_USER@$SSH_HOST"
+          DEST="/mnt/data/www/foerderscan/foerderscan"
+          SSH_OPTS="-i ~/.ssh/deploy_key -p $SSH_PORT"
+
+          echo "📤 Übertrage .next/ Build..."
+          rsync -az --delete \
+            -e "ssh $SSH_OPTS" \
+            .next/ "$REMOTE:$DEST/.next/"
+
+          echo "📤 Übertrage package.json + prisma..."
+          rsync -az \
+            -e "ssh $SSH_OPTS" \
+            package.json package-lock.json \
+            "$REMOTE:$DEST/"
+
+          rsync -az \
+            -e "ssh $SSH_OPTS" \
+            prisma/ "$REMOTE:$DEST/prisma/"
+
+          echo "📤 Übertrage public/ Assets..."
+          rsync -az --delete \
+            -e "ssh $SSH_OPTS" \
+            public/ "$REMOTE:$DEST/public/"
+
+      - name: Remote npm install migrate restart
+        uses: appleboy/ssh-action@v1
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: DATABASE_URL
+          script: |
+            set -e
+            cd /mnt/data/www/foerderscan/foerderscan
+
+            echo "📦 npm install (prod only)..."
+            npm ci --omit=dev --ignore-scripts
+
+            echo "🔄 Prisma generate + migrate..."
+            npx prisma generate
+            npx prisma migrate deploy
+
+            echo "♻️  PM2 reload..."
+            pm2 reload foerderscan --update-env
+
+            echo "✅ Deploy abgeschlossen – $(date)"

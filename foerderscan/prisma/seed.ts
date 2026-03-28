@@ -107,7 +107,8 @@ async function main() {
     });
   }
 
-  // Existing programmes löschen (idempotenter Seed)
+  // Existing programmes löschen (idempotenter Seed) – Reihenfolge beachten
+  await prisma.projektFoerderung.deleteMany();
   await prisma.foerderProgramm.deleteMany();
   console.log("🗑️  Alte Programme gelöscht");
 

@@ -4,8 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 /**
  * POST /api/matching
- * Body: { gebaeudetyp, massnahmenarten[], hatISFP, hatEEKlasse, hatNHKlasse, haushaltseinkommen, istSelbstgenutzt }
- * Returns matching FoerderProgramme with calculated Fördersätze
+ * Body: { gebaeudetyp, massnahmenarten[], hatISFP, hatWPB, hatSerSan, hatEEKlasse,
+ *         haushaltseinkommen, istSelbstgenutzt, altHeizung }
+ * Returns matching FoerderProgramme with calculated effective Fördersätze
  */
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -18,12 +19,14 @@ export async function POST(req: NextRequest) {
     gebaeudetyp = "EFH",
     massnahmenarten = [],
     hatISFP = false,
+    hatWPB = false,
+    hatSerSan = false,
     hatEEKlasse = false,
     haushaltseinkommen,
     istSelbstgenutzt = true,
+    altHeizung = false,
   } = body;
 
-  // Find programs matching the building type and measure type
   const programme = await prisma.foerderProgramm.findMany({
     where: {
       status: { in: ["AKTIV", "AUSLAUFEND"] },
@@ -31,7 +34,7 @@ export async function POST(req: NextRequest) {
         {
           OR: [
             { gebaeudetypen: { some: { gebaeudetyp } } },
-            { gebaeudetypen: { none: {} } }, // no restriction = applies to all
+            { gebaeudetypen: { none: {} } },
           ],
         },
         massnahmenarten.length > 0
@@ -50,19 +53,27 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // Calculate effective Fördersatz for each program
   const results = programme.map((p) => {
     let effektivSatz = Number(p.basisfördersatz);
-
-    // Apply applicable bonuses
     const aktiveBoni: string[] = [];
+
     for (const bonus of p.boni) {
-      const kuerzel = bonus.kuerzel;
+      const k = bonus.kuerzel.toLowerCase();
       let applicable = false;
-      if (kuerzel === "iSFP" && hatISFP) applicable = true;
-      if (kuerzel === "EE" && hatEEKlasse) applicable = true;
-      if (kuerzel === "NK" && haushaltseinkommen != null && haushaltseinkommen <= 40000 && istSelbstgenutzt) applicable = true;
-      if (kuerzel === "GV" && !hatISFP) applicable = true; // Geschwindigkeitsbonus for oil/gas replacement
+
+      if (k === "isfp" && hatISFP) applicable = true;
+      if ((k === "ee_nh" || k === "ee" || k === "nh") && hatEEKlasse) applicable = true;
+      if (k === "wpb" && hatWPB) applicable = true;
+      if (k === "sersan" && hatSerSan) applicable = true;
+      if (k === "effizienz" && hatEEKlasse) applicable = true;
+      if (k === "geschwindigkeit" && altHeizung) applicable = true;
+      if (
+        k === "einkommen" &&
+        haushaltseinkommen != null &&
+        Number(haushaltseinkommen) <= 40000 &&
+        istSelbstgenutzt
+      )
+        applicable = true;
 
       if (applicable) {
         effektivSatz += Number(bonus.bonusSatz);
@@ -84,13 +95,14 @@ export async function POST(req: NextRequest) {
       effektivSatz,
       maxFoerdersatz: Number(p.maxFoerdersatz),
       maxFoerderfaehigeKosten: p.maxFoerderfaehigeKosten,
+      kreditbetragMax: p.kreditbetragMax,
       aktiveBoni,
+      kumulierungsregeln: p.kumulierungsregeln.map((k) => k.beschreibung),
       quellUrl: p.quellUrl,
       hinweise: p.hinweise,
     };
   });
 
-  // Sort by effective rate descending
   results.sort((a, b) => b.effektivSatz - a.effektivSatz);
 
   return NextResponse.json({ results, count: results.length });

@@ -10,6 +10,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { programmTyp, investitionskosten: rawInvest, wohneinheiten: rawWE = 1,
     hatISFP = false, hatWPB = false, hatSerSan = false, hatEEKlasse = false,
+    altHeizung = false,
     istSelbstgenutzt = true, haushaltseinkommen = 999999, ehStufe = "55" } = body;
 
   if (!programmTyp || rawInvest === undefined) {
@@ -28,6 +29,7 @@ export async function POST(req: NextRequest) {
       let foerdersatz = 0.30;
       const aufschlaege: Record<string, number> = { basis: 0.30 };
       if (istSelbstgenutzt && haushaltseinkommen <= 40000) { aufschlaege.einkommensbonus = 0.30; foerdersatz += 0.30; }
+      if (altHeizung) { aufschlaege.geschwindigkeitsbonus = 0.20; foerdersatz += 0.20; }
       if (hatEEKlasse) { aufschlaege.effizienzbonus = 0.05; foerdersatz += 0.05; }
       foerdersatz = Math.min(foerdersatz, 0.70);
       result = { foerderfaehigeKosten, foerdersatz, foerderbetrag: Math.round(foerderfaehigeKosten * foerdersatz), aufschlaege,

@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
     hatSerSan = false,
     hatEEKlasse = false,
     hatNHKlasse = false,
+    altHeizung = false,
     istSelbstgenutzt = true,
     haushaltseinkommen = 999999,
     ehStufe = "55",
@@ -55,6 +56,7 @@ export async function POST(req: NextRequest) {
     hatSerSan?: boolean;
     hatEEKlasse?: boolean;
     hatNHKlasse?: boolean;
+    altHeizung?: boolean;
     istSelbstgenutzt?: boolean;
     haushaltseinkommen?: number;
     ehStufe?: string;
@@ -89,6 +91,12 @@ export async function POST(req: NextRequest) {
       if (istSelbstgenutzt && (haushaltseinkommen as number) <= 40000) {
         aufschlaege.einkommensbonus = 0.30;
         foerdersatz += 0.30;
+      }
+
+      // Geschwindigkeitsbonus (alte Ölheizung): +20%
+      if (altHeizung) {
+        aufschlaege.geschwindigkeitsbonus = 0.20;
+        foerdersatz += 0.20;
       }
 
       // Effizienzbonus (EE/NH-Klasse): +5%
@@ -217,7 +225,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     programmTyp,
-    eingabe: { investitionskosten, wohneinheiten, hatISFP, hatWPB, hatSerSan, hatEEKlasse, hatNHKlasse, ehStufe },
+    eingabe: { investitionskosten, wohneinheiten, hatISFP, hatWPB, hatSerSan, hatEEKlasse, hatNHKlasse, altHeizung, ehStufe },
     ergebnis: result,
   });
 }

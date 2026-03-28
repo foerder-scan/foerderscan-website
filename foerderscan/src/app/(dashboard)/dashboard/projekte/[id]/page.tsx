@@ -96,6 +96,13 @@ export default async function ProjektDetailPage({ params }: { params: Promise<{ 
           >
             <Download size={12} /> PDF
           </Link>
+          <a
+            href={`/api/projekte/${projekt.id}/export`}
+            download
+            className="flex items-center gap-2 border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold px-3 py-2 rounded-xl transition-colors cursor-pointer"
+          >
+            <FileText size={12} /> DOCX
+          </a>
           <Link
             href={`/dashboard/projekte/${projekt.id}/bearbeiten`}
             className="flex items-center gap-2 border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold px-3 py-2 rounded-xl transition-colors cursor-pointer"
