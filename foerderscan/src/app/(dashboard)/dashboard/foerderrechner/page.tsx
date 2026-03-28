@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Home,
   Building2,
@@ -221,7 +222,9 @@ function formatEur(val: number) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function FoerderrechnerPage() {
+  const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [saving, setSaving] = useState(false);
   const [input, setInput] = useState<BerechnungsInput>({
     gebaeudetyp: "EFH",
     baujahr: 1990,
@@ -259,6 +262,46 @@ export default function FoerderrechnerPage() {
       .catch(() => setDbProgramme([]))
       .finally(() => setDbLoading(false));
   }, [step, input.gebaeudetyp, input.massnahme, input.boniSerienSanierung, input.boniEEKlasse]);
+
+  const saveAsProjekt = useCallback(async () => {
+    setSaving(true);
+    try {
+      const gebaeudetypMap: Record<string, string> = { EFH: "EFH", ZFH: "ZFH", MFH: "MFH", NWG: "NWG" };
+      const massnahmeMap: Record<string, string> = {
+        komplettsanierung: "EH_KOMPLETTSANIERUNG",
+        heizung: "HEIZUNG",
+        daemmung: "GEBAEUDEHUELLE",
+        fenster: "GEBAEUDEHUELLE",
+        lueftung: "ANLAGENTECHNIK",
+        solar: "ANLAGENTECHNIK",
+      };
+      const res = await fetch("/api/projekte", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          titel: `${MASSNAHMEN.find((m) => m.value === input.massnahme)?.label ?? "Sanierung"} – ${new Date().toLocaleDateString("de-DE")}`,
+          kundeName: "Neuer Kunde",
+          plz: "00000",
+          gebaeudetyp: gebaeudetypMap[input.gebaeudetyp] ?? "EFH",
+          baujahr: input.baujahr,
+          hatISFP: input.boniSerienSanierung,
+          hatEEKlasse: input.boniEEKlasse,
+          istSelbstgenutzt: true,
+          haushaltseinkommen: input.boniNiedrigEinkommen ? 35000 : undefined,
+          massnahmen: [{
+            massnahmenart: massnahmeMap[input.massnahme] ?? "HEIZUNG",
+            investitionskosten: input.investition,
+          }],
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        router.push(`/dashboard/projekte/${data.id}`);
+      }
+    } finally {
+      setSaving(false);
+    }
+  }, [input, router]);
 
   const reset = useCallback(() => {
     setStep(1);
@@ -577,9 +620,12 @@ export default function FoerderrechnerPage() {
                   Anpassen
                 </button>
                 <button
-                  className="flex-1 flex items-center justify-center gap-2 bg-[#27AE60] hover:bg-[#1E8449] text-white text-sm font-semibold py-2.5 rounded-xl transition-colors cursor-pointer"
+                  onClick={saveAsProjekt}
+                  disabled={saving}
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#27AE60] hover:bg-[#1E8449] disabled:opacity-60 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors cursor-pointer"
                 >
-                  <Download size={14} /> Als Projekt speichern
+                  {saving ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                  {saving ? "Wird gespeichert…" : "Als Projekt speichern"}
                 </button>
               </div>
             </div>

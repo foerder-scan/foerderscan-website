@@ -666,7 +666,77 @@ async function main() {
     massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG, Massnahmenart.ANLAGENTECHNIK, Massnahmenart.EH_KOMPLETTSANIERUNG],
   });
 
-  console.log("✅ Landesförderungen erstellt (12 Programme, 8 Bundesländer)");
+  await createProgramm({
+    name: "Saarland – SAB Energetisch Modernisieren",
+    kurzname: "SAB Energie SL",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.ZUSCHUSS,
+    basisFoerdersatz: 0.10,
+    maxFoerdersatz: 0.20,
+    maxFoerderfaehigeKosten: 30000,
+    bundesland: "SL",
+    beschreibung: "Zuschüsse des Saarlandes für energetische Modernisierungsmaßnahmen an Wohngebäuden.",
+    hinweise: "Antrag beim saarländischen Ministerium für Wirtschaft und Wissenschaft.",
+    quellUrl: "https://www.saarland.de/foerderung",
+    gebaeudetypen: [Gebaeudetyp.EFH, Gebaeudetyp.ZFH, Gebaeudetyp.MFH],
+    massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG],
+    boni: [{ bezeichnung: "Bonus EH 55 SL", kuerzel: "sl_eh55", bonusSatz: 0.10, voraussetzung: "Sanierung auf EH 55 oder besser" }],
+  });
+
+  await createProgramm({
+    name: "IB.SH – Energetisch Sanieren Schleswig-Holstein",
+    kurzname: "IB.SH Energie SH",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.KREDIT,
+    basisFoerdersatz: 0.0,
+    maxFoerdersatz: 0.0,
+    kreditbetragMax: 75000,
+    bundesland: "SH",
+    beschreibung: "Günstige Darlehen der Investitionsbank Schleswig-Holstein (IB.SH) für energetische Sanierungsmaßnahmen.",
+    hinweise: "Antrag über Hausbank. Kombinierbar mit BEG-Programmen.",
+    quellUrl: "https://www.ib-sh.de/energie",
+    gebaeudetypen: [Gebaeudetyp.EFH, Gebaeudetyp.ZFH, Gebaeudetyp.MFH],
+    massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG, Massnahmenart.ANLAGENTECHNIK],
+  });
+
+  await createProgramm({
+    name: "Zukunftsinvestitionsprogramm Mecklenburg-Vorpommern",
+    kurzname: "ZIP MV",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.ZUSCHUSS,
+    basisFoerdersatz: 0.20,
+    maxFoerdersatz: 0.30,
+    maxFoerderfaehigeKosten: 40000,
+    bundesland: "MV",
+    beschreibung: "Zuschüsse des Landes Mecklenburg-Vorpommern für energetische Sanierung und erneuerbare Energien an Wohngebäuden.",
+    hinweise: "Antrag bei der Gesellschaft für Struktur- und Arbeitsmarktentwicklung (GSA). Kombinierbar mit BEG.",
+    quellUrl: "https://www.gsa-mv.de",
+    gebaeudetypen: [Gebaeudetyp.EFH, Gebaeudetyp.ZFH, Gebaeudetyp.MFH],
+    massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG, Massnahmenart.ANLAGENTECHNIK],
+    boni: [{ bezeichnung: "Ländlicher Raum MV", kuerzel: "mv_laendlich", bonusSatz: 0.10, voraussetzung: "Objekt außerhalb Rostock/Schwerin" }],
+  });
+
+  await createProgramm({
+    name: "IB Sachsen-Anhalt – Energieeffizienz Wohngebäude",
+    kurzname: "IB ST Energie",
+    foerdergeber: Foerdergeber.LAND,
+    foerdersegment: Foerdersegment.LANDESFOERDERUNG,
+    foerderart: Foerderart.KREDIT,
+    basisFoerdersatz: 0.0,
+    maxFoerdersatz: 0.0,
+    kreditbetragMax: 60000,
+    bundesland: "ST",
+    beschreibung: "Zinsgünstige Darlehen der Investitionsbank Sachsen-Anhalt (IB) für energetische Gebäudesanierungen.",
+    hinweise: "Antrag über Hausbank. Förderfähig: Sanierungen auf mind. KfW-85-Standard.",
+    quellUrl: "https://www.ib-sachsen-anhalt.de",
+    gebaeudetypen: [Gebaeudetyp.EFH, Gebaeudetyp.ZFH, Gebaeudetyp.MFH],
+    massnahmen: [Massnahmenart.GEBAEUDEHUELLE, Massnahmenart.HEIZUNG, Massnahmenart.EH_KOMPLETTSANIERUNG],
+  });
+
+  console.log("✅ Landesförderungen erstellt (16 Programme, alle 16 Bundesländer)");
   console.log("\n🎉 Seed abgeschlossen!");
   console.log("📧 Admin:   admin@foerderscan.de  /  Admin1234!");
   console.log("📧 Berater: berater@example.de    /  Berater1234!");

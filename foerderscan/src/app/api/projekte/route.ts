@@ -22,6 +22,10 @@ export async function POST(req: NextRequest) {
     gebaeudetyp,
     baujahr,
     notizen,
+    hatISFP = false,
+    hatEEKlasse = false,
+    istSelbstgenutzt = true,
+    haushaltseinkommen,
     massnahmen = [],
   } = body;
 
@@ -40,6 +44,10 @@ export async function POST(req: NextRequest) {
       gebaeudetyp: gebaeudetyp || "EFH",
       baujahr: baujahr ? Number(baujahr) : null,
       notizen: notizen?.trim() || null,
+      hatISFP: Boolean(hatISFP),
+      hatEEKlasse: Boolean(hatEEKlasse),
+      istSelbstgenutzt: Boolean(istSelbstgenutzt),
+      haushaltseinkommen: haushaltseinkommen ? Number(haushaltseinkommen) : null,
       status: "RECHERCHE",
       userId,
       massnahmen: {
